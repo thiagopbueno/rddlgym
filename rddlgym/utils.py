@@ -13,11 +13,7 @@
 # You should have received a copy of the GNU General Public License
 # along with rddlgym. If not, see <http://www.gnu.org/licenses/>.
 
-import pyrddl
 from pyrddl.parser import RDDLParser
-
-import tfrddlsim
-from tfrddlsim.rddl2tf.compiler import Compiler
 
 import rddlgym
 
@@ -28,7 +24,6 @@ from enum import Enum, auto
 class Mode(Enum):
     RAW = auto()
     AST = auto()
-    SCG = auto()
 
 
 def read_model(filename):
@@ -45,13 +40,7 @@ def parse_model(filename):
     return model
 
 
-def compile_model(filename):
-    model = parse_model(filename)
-    rddl2tf = Compiler(model)
-    return rddl2tf
-
-
-def make(id, mode=Mode.SCG):
+def make(id, mode=Mode.AST):
     dirname = os.path.join(os.path.dirname(rddlgym.__file__), 'files')
     filename = os.path.join(dirname, '{}.rddl'.format(id))
     if not os.path.isfile(filename):
@@ -61,7 +50,5 @@ def make(id, mode=Mode.SCG):
         return read_model(filename)
     elif mode == Mode.AST:
         return parse_model(filename)
-    elif mode == Mode.SCG:
-        return compile_model(filename)
     else:
         raise ValueError('Invalid mode: {}'.format(mode))

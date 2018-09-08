@@ -17,4 +17,3 @@ from rddlgym.utils import make, Mode
 
 RAW = Mode.RAW
 AST = Mode.AST
-SCG = Mode.SCG
