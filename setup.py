@@ -22,7 +22,7 @@ setup(
     url='https://github.com/thiagopbueno/rddlgym',
     packages=find_packages(),
     scripts=[],
-    install_requires=['pyrddl', 'tfrddlsim'],
+    install_requires=['pyrddl'],
     include_package_data=True,
     zip_safe=False,
     classifiers=[
