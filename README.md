@@ -1,2 +1,2 @@
 # rddl-gym
-A toolkit for loading RDDL domains in Python3.
+A toolkit for working with RDDL domains in Python3.
