@@ -50,7 +50,7 @@ def compile_model(filename):
 
 
 def make(id, mode=Mode.SCG):
-    dirname = os.path.join(os.path.dirname(rddlgym.__file__), '../files')
+    dirname = os.path.join(os.path.dirname(rddlgym.__file__), 'files')
     filename = os.path.join(dirname, '{}.rddl'.format(id))
     if not os.path.isfile(filename):
         raise ValueError('Invalid RDDL id: {}'.format(id))
