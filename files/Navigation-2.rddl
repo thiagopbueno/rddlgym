@@ -3,7 +3,6 @@ domain Navigation {
     requirements = {
         concurrent,           // this domain permits multiple non-default actions
         continuous,           // this domain uses real-valued parameterized variables
-        cpf-deterministic,    // this domain uses deterministic conditional functions for transitions
         intermediate-nodes,   // this domain uses intermediate pvariable nodes
         reward-deterministic  // this domain does not use a stochastic reward
     };

@@ -1,0 +1,231 @@
+////////////////////////////////////////////////////////////////////
+// The problem models the active maintenance of water levels in
+// a Reservoir system with uncertain rainfall and nonlinear 
+// evaporation rates as a function of water level.  The objective
+// is to maintain all reservoir levels within a desired safe range.
+//
+// The state of each reservoir is the water level (rlevel).  The 
+// actions are to set the outflows of each reservoir.  Rewards
+// are summed per reservoir and optimal when the water level is
+// within predefined upper and lower bounds.
+//
+// Author: Ga Wu, Buser Say inspired by Aswin Raghavan's RDDL model
+////////////////////////////////////////////////////////////////////
+
+domain reservoir {
+
+    requirements = { 
+        concurrent,           // x and y directions move independently and simultaneously
+        reward-deterministic, // this domain does not use a stochastic reward
+        intermediate-nodes,   // this domain uses intermediate pvariable nodes
+        constrained-state     // this domain uses state constraints
+    };
+
+    types {
+        res: object;
+    };
+    
+    pvariables {
+    
+        // Constants
+        MAX_RES_CAP(res): { non-fluent, real, default = 100.0 }; // Beyond this amount, water spills over
+        UPPER_BOUND(res): { non-fluent, real, default = 80.0 };  // The upper bound for a safe reservoir level
+        LOWER_BOUND(res): { non-fluent, real, default = 20.0 };  // The lower bound for a safe reservoir level
+        RAIN_SHAPE(res):  { non-fluent, real, default = 25.0 };  // Gamma shape parameter for rainfall
+        RAIN_SCALE(res):  { non-fluent, real, default = 25.0 };  // Gamma scale paramater for rainfall
+        DOWNSTREAM(res,res): { non-fluent, bool, default = false }; // Indicates 2nd res is downstream of 1st res
+        SINK_RES(res):    { non-fluent, bool, default = false }; // This is a "sink" water source (sea, ocean) 
+        MAX_WATER_EVAP_FRAC_PER_TIME_UNIT: { non-fluent, real, default = 0.05 }; // Maximum fraction of evaporation
+
+        LOW_PENALTY(res) : { non-fluent, real, default =  -5.0 }; // Penalty per unit of level < LOWER_BOUND
+        HIGH_PENALTY(res): { non-fluent, real, default = -10.0 }; // Penalty per unit of level > UPPER_BOUND
+
+        // Intermediate fluents
+        evaporated(res): {interm-fluent, real, level=1}; // How much evaporates from res in this time step?
+        rainfall(res):   {interm-fluent, real, level=1}; // How much rainfall is there in this time step?
+        overflow(res):   {interm-fluent, real, level=1}; // Is there any excess overflow (over the rim)?
+        inflow(res):     {interm-fluent, real, level=2}; // How much res receives from upstream reservoirs?
+
+        // State fluents
+        rlevel(res): {state-fluent, real, default = 50.0 }; // Reservoir level for res
+        
+        // Action fluents
+        outflow(res): { action-fluent, real, default = 0.0 }; // Action to set outflow of res
+    };
+    
+    cpfs {
+        // Gamma is non-negative, Gamma expected value is SHAPE*SCALE, variance is SHAPE*SCALE^2
+        rainfall(?r) = Gamma(RAIN_SHAPE(?r), RAIN_SCALE(?r));
+        
+        evaporated(?r) = MAX_WATER_EVAP_FRAC_PER_TIME_UNIT
+                         *[(rlevel(?r)*rlevel(?r))/(MAX_RES_CAP(?r)*MAX_RES_CAP(?r))]
+                         *rlevel(?r);
+
+        // Consider MAX_RES_CAP=90, rlevel=100, outflow=4, then the excess overflow is 6 units
+        // Consider MAX_RES_CAP=100, rlevel=90, outflow=4, then the excess overflow is 0 units
+        overflow(?r) = max[0, rlevel(?r) - outflow(?r) - MAX_RES_CAP(?r)]; 
+
+        inflow(?r) = sum_{?up : res} [DOWNSTREAM(?up,?r)*(outflow(?up) + overflow(?up))];
+
+        rlevel'(?r) = max[0.0, rlevel(?r) + rainfall(?r) - evaporated(?r) - outflow(?r) - overflow(?r) + inflow(?r)];
+    };
+    
+    reward = sum_{?r: res} [if (rlevel'(?r)>=LOWER_BOUND(?r) ^ (rlevel'(?r)<=UPPER_BOUND(?r)))
+                                    then 0
+                                    else if (rlevel'(?r)<=LOWER_BOUND(?r))
+                                        then LOW_PENALTY(?r)*(LOWER_BOUND(?r)-rlevel'(?r))
+                                        else HIGH_PENALTY(?r)*(rlevel'(?r)-UPPER_BOUND(?r))];
+                                
+    action-preconditions {
+    
+        forall_{?r : res} outflow(?r) <= rlevel(?r); 
+        forall_{?r : res} outflow(?r) >= 0;
+        
+    };
+
+    state-invariants {
+
+        forall_{?r : res} rlevel(?r) >= 0;  
+        forall_{?up : res} (sum_{?down : res} DOWNSTREAM(?up,?down)) <= 1;
+    };
+}
+
+non-fluents res20 {
+    domain = reservoir;
+    objects{
+        res: {t1,t2,t3,t4,t5,t6,t7,t8,t9,t10,t11,t12,t13,t14,t15,t16,t17,t18,t19,t20};
+    };
+    non-fluents {
+        RAIN_SHAPE(t1) = 1.881;
+        RAIN_SCALE(t1) = 2.541;
+        RAIN_SHAPE(t2) = 2.178;
+        RAIN_SCALE(t2) = 9.640;
+        RAIN_SHAPE(t3) = 1.801;
+        RAIN_SCALE(t3) = 2.702;
+        RAIN_SHAPE(t4) = 1.178;
+        RAIN_SCALE(t4) = 8.918;
+        RAIN_SHAPE(t5) = 2.894;
+        RAIN_SCALE(t5) = 9.055;
+        RAIN_SHAPE(t6) = 1.650;
+        RAIN_SCALE(t6) = 8.654;
+        RAIN_SHAPE(t7) = 1.202;
+        RAIN_SCALE(t7) = 7.645;
+        RAIN_SHAPE(t8) = 2.087;
+        RAIN_SCALE(t8) = 7.836;
+        RAIN_SHAPE(t9) = 1.813;
+        RAIN_SCALE(t9) = 6.601;
+        RAIN_SHAPE(t10) = 1.886;
+        RAIN_SCALE(t10) = 7.971;
+        RAIN_SHAPE(t11) = 2.066;
+        RAIN_SCALE(t11) = 4.210;
+        RAIN_SHAPE(t12) = 1.150;
+        RAIN_SCALE(t12) = 3.704;
+        RAIN_SHAPE(t13) = 1.420;
+        RAIN_SCALE(t13) = 9.119;
+        RAIN_SHAPE(t14) = 2.757;
+        RAIN_SCALE(t14) = 2.000;
+        RAIN_SHAPE(t15) = 1.346;
+        RAIN_SCALE(t15) = 1.081;
+        RAIN_SHAPE(t16) = 2.264;
+        RAIN_SCALE(t16) = 6.491;
+        RAIN_SHAPE(t17) = 2.215;
+        RAIN_SCALE(t17) = 6.516;
+        RAIN_SHAPE(t18) = 2.821;
+        RAIN_SCALE(t18) = 7.992;
+        RAIN_SHAPE(t19) = 1.841;
+        RAIN_SCALE(t19) = 8.549;
+        RAIN_SHAPE(t20) = 2.213;
+        RAIN_SCALE(t20) = 8.146;
+        MAX_RES_CAP(t1) = 606.444;
+        UPPER_BOUND(t1) = 514.188;
+        LOWER_BOUND(t1) = 86.013;
+        MAX_RES_CAP(t2) = 632.914;
+        UPPER_BOUND(t2) = 507.888;
+        LOWER_BOUND(t2) = 78.083;
+        MAX_RES_CAP(t3) = 368.057;
+        UPPER_BOUND(t3) = 282.018;
+        LOWER_BOUND(t3) = 39.538;
+        MAX_RES_CAP(t4) = 497.138;
+        UPPER_BOUND(t4) = 404.645;
+        LOWER_BOUND(t4) = 59.667;
+        MAX_RES_CAP(t5) = 381.973;
+        UPPER_BOUND(t5) = 297.925;
+        LOWER_BOUND(t5) = 55.168;
+        MAX_RES_CAP(t6) = 749.593;
+        UPPER_BOUND(t6) = 575.258;
+        LOWER_BOUND(t6) = 105.573;
+        MAX_RES_CAP(t7) = 718.570;
+        UPPER_BOUND(t7) = 542.385;
+        LOWER_BOUND(t7) = 105.121;
+        MAX_RES_CAP(t8) = 500.443;
+        UPPER_BOUND(t8) = 410.978;
+        LOWER_BOUND(t8) = 64.581;
+        MAX_RES_CAP(t9) = 989.571;
+        UPPER_BOUND(t9) = 776.147;
+        LOWER_BOUND(t9) = 143.022;
+        MAX_RES_CAP(t10) = 455.107;
+        UPPER_BOUND(t10) = 385.010;
+        LOWER_BOUND(t10) = 50.318;
+        MAX_RES_CAP(t11) = 669.200;
+        UPPER_BOUND(t11) = 563.606;
+        LOWER_BOUND(t11) = 68.722;
+        MAX_RES_CAP(t12) = 646.680;
+        UPPER_BOUND(t12) = 531.631;
+        LOWER_BOUND(t12) = 87.225;
+        MAX_RES_CAP(t13) = 514.378;
+        UPPER_BOUND(t13) = 407.916;
+        LOWER_BOUND(t13) = 67.854;
+        MAX_RES_CAP(t14) = 383.448;
+        UPPER_BOUND(t14) = 295.578;
+        LOWER_BOUND(t14) = 54.905;
+        MAX_RES_CAP(t15) = 900.199;
+        UPPER_BOUND(t15) = 751.648;
+        LOWER_BOUND(t15) = 132.078;
+        MAX_RES_CAP(t16) = 405.362;
+        UPPER_BOUND(t16) = 327.517;
+        LOWER_BOUND(t16) = 46.011;
+        MAX_RES_CAP(t17) = 617.842;
+        UPPER_BOUND(t17) = 513.485;
+        LOWER_BOUND(t17) = 87.127;
+        MAX_RES_CAP(t18) = 373.138;
+        UPPER_BOUND(t18) = 284.131;
+        LOWER_BOUND(t18) = 54.888;
+        MAX_RES_CAP(t19) = 625.482;
+        UPPER_BOUND(t19) = 475.835;
+        LOWER_BOUND(t19) = 78.649;
+        MAX_RES_CAP(t20) = 442.298;
+        UPPER_BOUND(t20) = 337.686;
+        LOWER_BOUND(t20) = 64.228;
+        DOWNSTREAM(t1,t2);
+        DOWNSTREAM(t2,t3);
+        DOWNSTREAM(t3,t4);
+        DOWNSTREAM(t4,t5);
+        DOWNSTREAM(t5,t6);
+        DOWNSTREAM(t6,t7);
+        DOWNSTREAM(t7,t8);
+        DOWNSTREAM(t8,t9);
+        DOWNSTREAM(t9,t10);
+        DOWNSTREAM(t10,t11);
+        DOWNSTREAM(t11,t12);
+        DOWNSTREAM(t12,t13);
+        DOWNSTREAM(t13,t14);
+        DOWNSTREAM(t14,t15);
+        DOWNSTREAM(t15,t16);
+        DOWNSTREAM(t16,t17);
+        DOWNSTREAM(t17,t18);
+        DOWNSTREAM(t18,t19);
+        DOWNSTREAM(t19,t20);
+        SINK_RES(t20);        
+    };
+}
+
+instance inst_reservoir_res20 {
+    domain = reservoir;
+    non-fluents = res20;
+    init-state{
+        rlevel(t1) = 75.0;
+    };
+    max-nondef-actions = pos-inf;
+    horizon = 40;
+    discount = 1.0;
+}
