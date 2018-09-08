@@ -1,7 +1,7 @@
 import os
 from setuptools import setup, find_packages
 
-import rddlgym
+from rddlgym.version import __version__
 
 
 def read(filename):
@@ -12,7 +12,7 @@ def read(filename):
 
 setup(
     name='rddlgym',
-    version=rddlgym.__version__,
+    version=__version__,
     author='Thiago P. Bueno',
     author_email='thiago.pbueno@gmail.com',
     description='rddlgym: A toolkit for working with RDDL domains in Python3.',
