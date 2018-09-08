@@ -13,8 +13,10 @@
 # You should have received a copy of the GNU General Public License
 # along with rddlgym. If not, see <http://www.gnu.org/licenses/>.
 
-
+import pyrddl
 from pyrddl.parser import RDDLParser
+
+import tfrddlsim
 from tfrddlsim.rddl2tf.compiler import Compiler
 
 import rddlgym
