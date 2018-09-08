@@ -14,5 +14,5 @@
 # along with rddlgym. If not, see <http://www.gnu.org/licenses/>.
 
 
-__version__ = '0.2.5'
-__release__ = 'v0.2.5-alpha'
+__version__ = '0.2.7'
+__release__ = 'v0.2.7-alpha'

@@ -1,1 +1,1 @@
-include files/*.rddl
+include rddlgym/files/*.rddl
