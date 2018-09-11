@@ -1,2 +1,3 @@
 include rddlgym/files/*.rddl
+include rddlgym/files/all.json
 include version.txt

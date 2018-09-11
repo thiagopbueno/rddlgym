@@ -1,0 +1,50 @@
+{
+    "HVAC-3": {
+        "authors": ["Scott Sanner", "Thiago Bueno"],
+        "date": "2018-09-05",
+        "description": "3-Room Temperature Control Simulation.\nHere we define space as object, which includes rooms, hallways, and outside of the building.\nOur objective is to save the cost of using HVAC system, while controlling the room temperature within a certain desired range.\nWe use HVAC system to control the temperature of each room, by turning the HVAC (heating) air on/off\nReward function is to calculate the cost to providing cooling/warming control.\nThere will also be thermal transfer both between each space, which will impact the room temperature\nThe amount of heat transferred depends on the temperature difference and the Thermal Resistance of the wall between the spaces\nWe assigns a penalty that will be applied if the room temperature goes beyond the desired temperature range.",
+        "requirements": ["concurrent", "continuous", "reward-deterministic", "intermediate-nodes", "constrained-state"]
+    },
+    "HVAC-6": {
+        "authors": ["Scott Sanner", "Thiago Bueno"],
+        "date": "2018-09-05",
+        "description": "6-Room Temperature Control Simulation.\nHere we define space as object, which includes rooms, hallways, and outside of the building.\nOur objective is to save the cost of using HVAC system, while controlling the room temperature within a certain desired range.\nWe use HVAC system to control the temperature of each room, by turning the HVAC (heating) air on/off\nReward function is to calculate the cost to providing cooling/warming control.\nThere will also be thermal transfer both between each space, which will impact the room temperature\nThe amount of heat transferred depends on the temperature difference and the Thermal Resistance of the wall between the spaces\nWe assigns a penalty that will be applied if the room temperature goes beyond the desired temperature range.",
+        "requirements": ["concurrent", "continuous", "reward-deterministic", "intermediate-nodes", "constrained-state"]
+    },
+    "Mars_Rover": {
+        "authors": ["Scott Sanner"],
+        "date": "2018-09-05",
+        "description": "A simple mixed discrete continuous MDP for a single Mars Rover.\n A Rover must traverse a 2D region and take pictures within the\n bounding boxes of designated picture points denoted by nonfluents\n within time constraints (e.g., Martian daylight).  Note that this \n models continuous time explicitly since there is only one rover.\n\n The continuous state (x,y,t) consists of robot position (x,y) and time t.\n The discrete state consists of whether each picture-point has been taken. \n The action consists of movements (dx,dy) or the snapping of a picture\n without moving (state-action constraints enforce this exclusion).\n A reward is gained for snapping a picture within the bounding box\n of a picture point -- reward can only be obtained for a picture once.\n\n The goal here is to take as many high-value pictures (within their\n designated radii) as possible within the time constraints.\n\n I can provide a proper version of this domain using circles for \n picture-points and Euclidean distance for time updating on movement.\n\n Motivated by:\n\n   Bresina, J. L.; Dearden, R.; Meuleau, N.; Ramkrishnan, S.;\n   Smith, D. E.; and Washington, R. 2002. Planning under continuous\n   time and resource uncertainty: A challenge for AI. UAI 2002.",
+        "requirements": ["concurrent", "continuous", "reward-deterministic", "intermediate-nodes", "constrained-state"]
+    },
+    "Navigation-2": {
+        "authors": ["Scott Sanner", "Wu Ga", "Thiago Bueno"],
+        "date": "2018-09-05",
+        "description": "An agent has to move from a start position to a goal position\nas fast as it can while avoiding decelearion zones.",
+        "requirements": ["concurrent", "continuous", "reward-deterministic", "intermediate-nodes"]
+    },
+    "Reservoir-8": {
+        "authors": ["Scott Sanner", "Wu Ga", "Buser", "Thiago Bueno"],
+        "date": "2018-02-22",
+        "description": "\n Reservoir Control: (8 reservoirs)\n\n The problem models the active maintenance of water levels in\n a Reservoir system with uncertain rainfall and nonlinear \n evaporation rates as a function of water level.  The objective\n is to maintain all reservoir levels within a desired safe range.\n\n The state of each reservoir is the water level (rlevel).  The \n actions are to set the outflows of each reservoir.  Rewards\n are summed per reservoir and optimal when the water level is\n within predefined upper and lower bounds.\n",
+        "requirements": ["concurrent", "continuous", "reward-deterministic", "intermediate-nodes", "constrained-state"]
+    },
+    "Reservoir-10": {
+        "authors": ["Scott Sanner", "Wu Ga", "Buser", "Thiago Bueno"],
+        "date": "2018-02-22",
+        "description": "\n Reservoir Control: (10 reservoirs)\n\n The problem models the active maintenance of water levels in\n a Reservoir system with uncertain rainfall and nonlinear \n evaporation rates as a function of water level.  The objective\n is to maintain all reservoir levels within a desired safe range.\n\n The state of each reservoir is the water level (rlevel).  The \n actions are to set the outflows of each reservoir.  Rewards\n are summed per reservoir and optimal when the water level is\n within predefined upper and lower bounds.\n",
+        "requirements": ["concurrent", "continuous", "reward-deterministic", "intermediate-nodes", "constrained-state"]
+    },
+    "Reservoir-20": {
+        "authors": ["Scott Sanner", "Wu Ga", "Buser", "Thiago Bueno"],
+        "date": "2018-02-22",
+        "description": "\n Reservoir Control: (20 reservoirs)\n\n The problem models the active maintenance of water levels in\n a Reservoir system with uncertain rainfall and nonlinear \n evaporation rates as a function of water level.  The objective\n is to maintain all reservoir levels within a desired safe range.\n\n The state of each reservoir is the water level (rlevel).  The \n actions are to set the outflows of each reservoir.  Rewards\n are summed per reservoir and optimal when the water level is\n within predefined upper and lower bounds.\n",
+        "requirements": ["concurrent", "continuous", "reward-deterministic", "intermediate-nodes", "constrained-state"]
+    },
+    "Reservoir-30": {
+        "authors": ["Scott Sanner", "Wu Ga", "Buser", "Thiago Bueno"],
+        "date": "2018-02-22",
+        "description": "\n Reservoir Control: (30 reservoirs)\n\n The problem models the active maintenance of water levels in\n a Reservoir system with uncertain rainfall and nonlinear \n evaporation rates as a function of water level.  The objective\n is to maintain all reservoir levels within a desired safe range.\n\n The state of each reservoir is the water level (rlevel).  The \n actions are to set the outflows of each reservoir.  Rewards\n are summed per reservoir and optimal when the water level is\n within predefined upper and lower bounds.\n",
+        "requirements": ["concurrent", "continuous", "reward-deterministic", "intermediate-nodes", "constrained-state"]
+    }
+}
