@@ -1,1 +1,2 @@
 include rddlgym/files/*.rddl
+include version.txt
