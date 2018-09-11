@@ -19,7 +19,7 @@ setup(
     keywords=['rddl', 'toolkit'],
     url='https://github.com/thiagopbueno/rddlgym',
     packages=find_packages(),
-    scripts=[],
+    scripts=['scripts/rddlgym'],
     install_requires=[
         'pyrddl',
         'rddl2tf'

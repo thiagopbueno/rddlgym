@@ -20,6 +20,7 @@ from rddl2tf.compiler import Compiler
 import rddlgym
 
 import os
+import json
 from enum import Enum, auto
 
 
@@ -27,6 +28,14 @@ class Mode(Enum):
     RAW = auto()
     AST = auto()
     SCG = auto()
+
+
+def read_db():
+    dirname = os.path.join(os.path.dirname(rddlgym.__file__), 'files')
+    domains = os.path.join(dirname, 'all.json')
+    with open(domains, 'r') as file:
+        domains = json.loads(file.read())
+        return domains
 
 
 def read_model(filename):
@@ -57,15 +66,39 @@ def load(filename, mode=Mode.AST):
     elif mode == Mode.SCG:
         return compile_model(filename)
     else:
-        raise ValueError('Invalid mode: {}'.format(mode))
+        raise ValueError('Invalid rddlgym mode: {}'.format(mode))
 
 
-def make(model, mode=Mode.AST):
-    if os.path.isfile(model):
-        return load(model, mode)
+def make(rddl, mode=Mode.AST):
+    if os.path.isfile(rddl):
+        return load(rddl, mode)
     else:
         dirname = os.path.join(os.path.dirname(rddlgym.__file__), 'files')
-        filename = os.path.join(dirname, '{}.rddl'.format(model))
+        filename = os.path.join(dirname, '{}.rddl'.format(rddl))
         if not os.path.isfile(filename):
-            raise ValueError('Invalid RDDL id: {}'.format(id))
+            raise ValueError("Couldn't find RDDL domain: {}".format(rddl))
         return load(filename, mode)
+
+
+def list_all():
+    db = read_db()
+    for domain in db:
+        print(domain)
+
+
+def info(rddl):
+    db = read_db()
+    if rddl not in db:
+        raise ValueError("Couldn't find RDDL domain: {}".format(rddl))
+    metadata = db[rddl]
+    print(rddl)
+    print('>> Authors:      {}'.format(', '.join(metadata['authors'])))
+    print('>> Date:         {}'.format(metadata['date']))
+    print('>> Requirements: {}'.format(', '.join(metadata['requirements'])))
+    print('>> Description:')
+    print(metadata['description'])
+
+
+def show(rddl):
+    model = make(rddl, mode=Mode.RAW)
+    print(model)
