@@ -60,12 +60,12 @@ def load(filename, mode=Mode.AST):
         raise ValueError('Invalid mode: {}'.format(mode))
 
 
-def make(rddl, mode=Mode.AST):
-    if os.path.isfile(rddl):
-        return load(rddl, mode)
+def make(model, mode=Mode.AST):
+    if os.path.isfile(model):
+        return load(model, mode)
     else:
         dirname = os.path.join(os.path.dirname(rddlgym.__file__), 'files')
-        filename = os.path.join(dirname, '{}.rddl'.format(id))
+        filename = os.path.join(dirname, '{}.rddl'.format(model))
         if not os.path.isfile(filename):
             raise ValueError('Invalid RDDL id: {}'.format(id))
         return load(filename, mode)
