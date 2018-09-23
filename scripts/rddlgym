@@ -18,7 +18,8 @@
 
 import argparse
 
-from rddlgym.utils import list_all, info, show
+import rddlgym
+from rddlgym.utils import list_all, info, show, make
 
 
 def parse_args():
@@ -27,7 +28,7 @@ def parse_args():
     parser.add_argument(
         'command',
         type=str,
-        choices=['list', 'info', 'show'],
+        choices=['list', 'info', 'show', 'parse'],
         help='available commands'
     )
     parser.add_argument(
@@ -46,16 +47,17 @@ def parse_args():
 if __name__ == '__main__':
     args = parse_args()
 
+    if args.command in ['info', 'show', 'parse'] and args.rddl is None:
+        print('Error: please provide the domain id via --rddl')
+        exit()
+
     if args.command == 'list':
         list_all()
     elif args.command == 'info':
-        if args.rddl is None:
-            print('Error: please provide the domain id via --rddl')
-            exit()
         info(args.rddl)
     elif args.command == 'show':
-        if args.rddl is None:
-            print('Error: please provide the domain id via --rddl')
-            exit()
         show(args.rddl)
-
+    elif args.command == 'parse':
+        model = make(args.rddl, mode=rddlgym.AST)
+        print(model.domain.name)
+        print(model.instance.name)
