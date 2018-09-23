@@ -1,0 +1,87 @@
+////////////////////////////////////////////////////////////////////
+// SysAdmin Boolean MDP 
+//
+// An example RDDL description for the well-known SysAdmin problem
+// (Guestrin, Koller, Parr, IJCAI-01).
+//
+// Author: Scott Sanner (ssanner [at] gmail.com)
+////////////////////////////////////////////////////////////////////
+domain sysadmin_mdp {
+  
+    requirements = { 
+        reward-deterministic // this domain does not use a stochastic reward
+    };
+    
+    types {
+        computer : object;
+    };
+      
+    pvariables { 
+                                        
+        REBOOT-PROB : { non-fluent, real, default = 0.1 };
+        REBOOT-PENALTY : { non-fluent, real, default = 0.75 };
+
+        CONNECTED(computer, computer) : { non-fluent, bool, default = false };
+
+        running(computer) : { state-fluent, bool, default = false };
+      
+        reboot(computer) : { action-fluent, bool, default = false }; 
+    };
+    
+    cpfs {
+  
+        running'(?x) = if (reboot(?x))
+                        then KronDelta(true)  // if computer is rebooted then must be running 
+                        else if (running(?x)) // otherwise outcome depends on network properties
+                            then Bernoulli(.45 + .5*[1 + sum_{?y : computer} (CONNECTED(?y,?x) ^ running(?y))] 
+                                                    / [1 + sum_{?y : computer} CONNECTED(?y,?x)])
+                            else Bernoulli(REBOOT-PROB); 
+    };
+  
+    reward = sum_{?c : computer} [running(?c) - (REBOOT-PENALTY * reboot(?c))];
+}
+
+non-fluents nf_sysadmin_inst_mdp__1 {
+    domain = sysadmin_mdp;
+    objects {
+        computer : {c1,c2,c3,c4,c5,c6,c7,c8,c9,c10};
+    };
+    non-fluents {
+        REBOOT-PROB = 0.05;
+        CONNECTED(c1,c4);
+        CONNECTED(c1,c9);
+        CONNECTED(c2,c8);
+        CONNECTED(c3,c4);
+        CONNECTED(c3,c9);
+        CONNECTED(c4,c5);
+        CONNECTED(c5,c7);
+        CONNECTED(c6,c4);
+        CONNECTED(c6,c8);
+        CONNECTED(c7,c9);
+        CONNECTED(c8,c6);
+        CONNECTED(c8,c10);
+        CONNECTED(c9,c6);
+        CONNECTED(c10,c2);
+    };
+}
+
+instance sysadmin_inst_mdp__1 {
+    domain = sysadmin_mdp;
+    non-fluents = nf_sysadmin_inst_mdp__1;
+    init-state {
+        running(c1);
+        running(c2);
+        running(c3);
+        running(c4);
+        running(c5);
+        running(c6);
+        running(c7);
+        running(c8);
+        running(c9);
+        running(c10);
+    };
+
+    max-nondef-actions = 1;
+    horizon  = 40;
+    discount = 1.0;
+}

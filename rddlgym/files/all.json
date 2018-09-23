@@ -1,4 +1,28 @@
 {
+    "CrossingTraffic-1": {
+        "authors": ["Sungwook Yoon"],
+        "date": "2011-04-23",
+        "description": "Crossing Traffic Robot Navigation (3x3)\n\n Author: Sungwook Yoon (sungwook.yoon [at] gmail.com)\n\n Modified for competition and translation purposes by Scott Sanner.\n\n In a grid, a robot (R) must get to a goal (G) and avoid obstacles (O)\n arriving randomly and moving left.  If an obstacle overlaps with the\n robot, the robot disappears and can no longer move around.  The robot\n can 'duck' underneath a car by deliberately moving right/east when\n a car is to the right of it (this can make the solution interesting...\n the robot should start at the left side of the screen then).  The robot\n receives -1 for every time step it has not reached the goal.  The goal\n state is absorbing with 0 reward.\n\n ****************\n *            R * \n *  <-O <-O <-O *\n *    <-O   <-O *\n * <-O    <-O   *\n *     <-O  <-O *\n *            G *\n ****************\n\n You can think of this as the RDDL version of Frogger:\n\n   http://en.wikipedia.org/wiki/Frogger",
+        "requirements": ["reward-deterministic", "constrained-state"]
+    },
+    "CrossingTraffic-10": {
+        "authors": ["Sungwook Yoon"],
+        "date": "2011-04-23",
+        "description": "Crossing Traffic Robot Navigation (7x7)\n\n Author: Sungwook Yoon (sungwook.yoon [at] gmail.com)\n\n Modified for competition and translation purposes by Scott Sanner.\n\n In a grid, a robot (R) must get to a goal (G) and avoid obstacles (O)\n arriving randomly and moving left.  If an obstacle overlaps with the\n robot, the robot disappears and can no longer move around.  The robot\n can 'duck' underneath a car by deliberately moving right/east when\n a car is to the right of it (this can make the solution interesting...\n the robot should start at the left side of the screen then).  The robot\n receives -1 for every time step it has not reached the goal.  The goal\n state is absorbing with 0 reward.\n\n ****************\n *            R * \n *  <-O <-O <-O *\n *    <-O   <-O *\n * <-O    <-O   *\n *     <-O  <-O *\n *            G *\n ****************\n\n You can think of this as the RDDL version of Frogger:\n\n   http://en.wikipedia.org/wiki/Frogger",
+        "requirements": ["reward-deterministic", "constrained-state"]
+    },
+    "GameOfLife-1": {
+        "authors": ["Scott Sanner"],
+        "date": "2011-04-20",
+        "description": "Game of Life Boolean MDP (3x3)\nA simple DBN to encode Conway's cellular automata 'game of life'\non a grid.  One gets a reward for generating patterns that keep\nthe most cells alive.",
+        "requirements": ["reward-deterministic"]
+    },
+    "GameOfLife-10": {
+        "authors": ["Scott Sanner"],
+        "date": "2011-04-20",
+        "description": "Game of Life Boolean MDP (10x3)\nA simple DBN to encode Conway's cellular automata 'game of life'\non a grid.  One gets a reward for generating patterns that keep\nthe most cells alive.",
+        "requirements": ["reward-deterministic"]
+    },
     "HVAC-3": {
         "authors": ["Scott Sanner", "Thiago Bueno"],
         "date": "2018-09-05",
@@ -46,5 +70,17 @@
         "date": "2018-02-22",
         "description": "\n Reservoir Control: (30 reservoirs)\n\n The problem models the active maintenance of water levels in\n a Reservoir system with uncertain rainfall and nonlinear \n evaporation rates as a function of water level.  The objective\n is to maintain all reservoir levels within a desired safe range.\n\n The state of each reservoir is the water level (rlevel).  The \n actions are to set the outflows of each reservoir.  Rewards\n are summed per reservoir and optimal when the water level is\n within predefined upper and lower bounds.\n",
         "requirements": ["concurrent", "continuous", "reward-deterministic", "intermediate-nodes", "constrained-state"]
+    },
+    "Sysadmin-1": {
+        "authors": ["Scott Sanner"],
+        "date": "2011-04-23",
+        "description": "SysAdmin Boolean MDP (10 computers)\nAn example RDDL description for the well-known SysAdmin problem\n(Guestrin, Koller, Parr, IJCAI-01).",
+        "requirements": ["reward-deterministic"]
+    },
+    "Sysadmin-10": {
+        "authors": ["Scott Sanner"],
+        "date": "2014-01-13",
+        "description": "SysAdmin Boolean MDP (50 computers)\nAn example RDDL description for the well-known SysAdmin problem\n(Guestrin, Koller, Parr, IJCAI-01).",
+        "requirements": ["reward-deterministic"]
     }
 }
