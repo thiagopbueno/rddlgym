@@ -41,7 +41,13 @@
         "description": "A simple mixed discrete continuous MDP for a single Mars Rover.\n A Rover must traverse a 2D region and take pictures within the\n bounding boxes of designated picture points denoted by nonfluents\n within time constraints (e.g., Martian daylight).  Note that this \n models continuous time explicitly since there is only one rover.\n\n The continuous state (x,y,t) consists of robot position (x,y) and time t.\n The discrete state consists of whether each picture-point has been taken. \n The action consists of movements (dx,dy) or the snapping of a picture\n without moving (state-action constraints enforce this exclusion).\n A reward is gained for snapping a picture within the bounding box\n of a picture point -- reward can only be obtained for a picture once.\n\n The goal here is to take as many high-value pictures (within their\n designated radii) as possible within the time constraints.\n\n I can provide a proper version of this domain using circles for \n picture-points and Euclidean distance for time updating on movement.\n\n Motivated by:\n\n   Bresina, J. L.; Dearden, R.; Meuleau, N.; Ramkrishnan, S.;\n   Smith, D. E.; and Washington, R. 2002. Planning under continuous\n   time and resource uncertainty: A challenge for AI. UAI 2002.",
         "requirements": ["concurrent", "continuous", "reward-deterministic", "intermediate-nodes", "constrained-state"]
     },
-    "Navigation-2": {
+    "Navigation-v1": {
+        "authors": ["Scott Sanner", "Wu Ga"],
+        "date": "2018-09-05",
+        "description": "An agent has to move from a start position to a goal position\nas fast as it can while avoiding decelearion zones.",
+        "requirements": ["concurrent", "continuous", "cpf-deterministic", "reward-deterministic", "intermediate-nodes"]
+    },
+    "Navigation-v2": {
         "authors": ["Scott Sanner", "Wu Ga", "Thiago Bueno"],
         "date": "2018-09-05",
         "description": "An agent has to move from a start position to a goal position\nas fast as it can while avoiding decelearion zones.",
