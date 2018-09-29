@@ -35,6 +35,12 @@
         "description": "6-Room Temperature Control Simulation.\nHere we define space as object, which includes rooms, hallways, and outside of the building.\nOur objective is to save the cost of using HVAC system, while controlling the room temperature within a certain desired range.\nWe use HVAC system to control the temperature of each room, by turning the HVAC (heating) air on/off\nReward function is to calculate the cost to providing cooling/warming control.\nThere will also be thermal transfer both between each space, which will impact the room temperature\nThe amount of heat transferred depends on the temperature difference and the Thermal Resistance of the wall between the spaces\nWe assigns a penalty that will be applied if the room temperature goes beyond the desired temperature range.",
         "requirements": ["concurrent", "continuous", "reward-deterministic", "intermediate-nodes", "constrained-state"]
     },
+    "HVAC-v1": {
+        "authors": ["Scott Sanner", "Thiago Bueno"],
+        "date": "2018-09-05",
+        "description": "6-Room Temperature Control Simulation.\nHere we define space as object, which includes rooms, hallways, and outside of the building.\nOur objective is to save the cost of using HVAC system, while controlling the room temperature within a certain desired range.\nWe use HVAC system to control the temperature of each room, by turning the HVAC (heating) air on/off\nReward function is to calculate the cost to providing cooling/warming control.\nThere will also be thermal transfer both between each space, which will impact the room temperature\nThe amount of heat transferred depends on the temperature difference and the Thermal Resistance of the wall between the spaces\nWe assigns a penalty that will be applied if the room temperature goes beyond the desired temperature range.",
+        "requirements": ["concurrent", "continuous", "cpf-deterministic", "reward-deterministic", "intermediate-nodes"]
+    },
     "Mars_Rover": {
         "authors": ["Scott Sanner"],
         "date": "2018-09-05",
