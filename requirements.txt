@@ -1,2 +1,2 @@
 pyrddl>=0.1.0
-rddl2tf>=0.2.0
+rddl2tf>=0.4.3

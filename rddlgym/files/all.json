@@ -59,6 +59,12 @@
         "description": "An agent has to move from a start position to a goal position\nas fast as it can while avoiding decelearion zones.",
         "requirements": ["concurrent", "continuous", "reward-deterministic", "intermediate-nodes"]
     },
+    "Navigation-v3": {
+        "authors": ["Thiago Bueno"],
+        "date": "2018-10-29",
+        "description": "An agent has to move from a start position to a goal position\nas fast as it can while avoiding decelearion zones.",
+        "requirements": ["concurrent", "continuous", "reward-deterministic", "intermediate-nodes"]
+    },
     "Reservoir-8": {
         "authors": ["Scott Sanner", "Wu Ga", "Buser", "Thiago Bueno"],
         "date": "2018-02-22",
