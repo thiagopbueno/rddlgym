@@ -58,6 +58,6 @@ if __name__ == '__main__':
     elif args.command == 'show':
         show(args.rddl)
     elif args.command == 'parse':
-        model = make(args.rddl, mode=rddlgym.AST)
+        model = make(args.rddl, mode=rddlgym.AST, verbose=args.verbose)
         print(model.domain.name)
         print(model.instance.name)

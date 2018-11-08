@@ -44,9 +44,9 @@ def read_model(filename):
         return rddl
 
 
-def parse_model(filename):
+def parse_model(filename, verbose=False):
     rddl = read_model(filename)
-    parser = RDDLParser()
+    parser = RDDLParser(verbose=verbose)
     parser.build()
     model = parser.parse(rddl)
     return model
@@ -58,26 +58,26 @@ def compile_model(filename):
     return compiler
 
 
-def load(filename, mode=Mode.AST):
+def load(filename, mode=Mode.AST, verbose=False):
     if mode == Mode.RAW:
         return read_model(filename)
     elif mode == Mode.AST:
-        return parse_model(filename)
+        return parse_model(filename, verbose)
     elif mode == Mode.SCG:
         return compile_model(filename)
     else:
         raise ValueError('Invalid rddlgym mode: {}'.format(mode))
 
 
-def make(rddl, mode=Mode.AST):
+def make(rddl, mode=Mode.AST, verbose=False):
     if os.path.isfile(rddl):
-        return load(rddl, mode)
+        return load(rddl, mode, verbose)
     else:
         dirname = os.path.join(os.path.dirname(rddlgym.__file__), 'files')
         filename = os.path.join(dirname, '{}.rddl'.format(rddl))
         if not os.path.isfile(filename):
             raise ValueError("Couldn't find RDDL domain: {}".format(rddl))
-        return load(filename, mode)
+        return load(filename, mode, verbose)
 
 
 def list_all():
