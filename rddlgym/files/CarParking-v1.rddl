@@ -1,0 +1,84 @@
+domain CarParking-v1 {
+
+    requirements = {
+        concurrent,
+        continuous,
+        cpf-deterministic,
+        intermediate-nodes,
+        reward-deterministic
+    };
+
+    types {
+
+    };
+
+    pvariables {
+        h: { non-fluent, real, default = 0.01 }; // h-step Euler dynamics
+        d: { non-fluent, real, default = 2.00 }; // distance between the front and back axles
+
+        px: { non-fluent, real, default = 0.10 }; // p-sized neighboorhood in x dimension
+        py: { non-fluent, real, default = 0.10 }; // p-sized neighboorhood in y dimension
+        pt: { non-fluent, real, default = 0.01 }; // p-sized neighboorhood in theta dimension
+        pv: { non-fluent, real, default = 1.00 }; // p-sized neighboorhood in velocity dimension
+
+        co: { non-fluent, real, default = 0.01};   // omega cost coefficent
+        ca: { non-fluent, real, default = 0.0001}; // acceleration cost coefficent
+
+        x:     { state-fluent, real, default = 0.0 }; // x-position of the point midway between the back wheels
+        y:     { state-fluent, real, default = 0.0 }; // y-position of the point midway between the back wheels
+        theta: { state-fluent, real, default = 0.0 }; // angle of the car relative to the x-axis
+        v:     { state-fluent, real, default = 0.0 }; // velocity of the front wheels
+
+        omega: { action-fluent, real, default = 0.0 }; // steering wheel angle w.r.t. the current car direction
+        a:     { action-fluent, real, default = 0.0 }; // front wheel acceleration
+
+        f: { interm-fluent, real, level = 1 }; // front wheel rolling distance
+        b: { interm-fluent, real, level = 2 }; // back wheel rolling distance
+    };
+
+    cpfs {
+        f = h * v;
+        b = f * cos[omega] + d - sqrt[ pow[d, 2] - pow[f, 2] * pow[sin[omega], 2] ];
+
+        x' = x + b * cos[theta];
+        y' = y + b * sin[theta];
+        theta' = theta + arcsin[ sin[omega] * (f / d) ];
+        v' = v + h * a;
+    };
+
+    reward = sqrt[ pow[x, 2] + pow[px, 2] ] - px
+             + sqrt[ pow[y, 2] + pow[py, 2] ] - py
+             + sqrt[ pow[theta, 2] + pow[pt, 2] ] - pt
+             + sqrt[ pow[v, 2] + pow[pv, 2] ] - pv
+             + co * pow[omega, 2] + ca * pow[a, 2];
+
+    action-preconditions {
+        abs[omega] <= 0.5;
+        abs[a] <= 2.0;
+    };
+}
+
+non-fluents CarParking-nf-v1 {
+
+    domain = CarParking-v1;
+
+    non-fluents {
+        h = 0.01;
+    };
+}
+
+instance inst1 {
+    domain = CarParking-v1;
+    non-fluents = CarParking-nf-v1;
+
+    init-state  {
+        x = 1.0;
+        y = 1.0;
+        theta = 4.712; // 3 * pi / 2
+        v = 0.0;
+    };
+
+    max-nondef-actions = pos-inf;
+    horizon = 500;
+    discount = 1.0;
+}

@@ -1,4 +1,10 @@
 {
+    "CarParking-v1": {
+        "authors": ["Thiago Bueno"],
+        "date": "2018-11-08",
+        "description": "Car Parking\n\n[Tassa et al, 2014]. Control-limited differential dynamic programming.\n\nThe task is to maneuver a car by controlling the front wheel angle and acceleration to a final position.",
+        "requirements": ["concurrent", "continuous", "cpf-deterministic", "reward-deterministic", "intermediate-nodes"]
+    },
     "CrossingTraffic-1": {
         "authors": ["Sungwook Yoon"],
         "date": "2011-04-23",
