@@ -20,9 +20,10 @@ setup(
     url='https://github.com/thiagopbueno/rddlgym',
     packages=find_packages(),
     scripts=['scripts/rddlgym'],
+    python_requires='>=3.5',
     install_requires=[
-        'pyrddl',
-        'rddl2tf'
+        'pyrddl>=0.1.7',
+        'rddl2tf>=0.4.7'
     ],
     include_package_data=True,
     zip_safe=False,
