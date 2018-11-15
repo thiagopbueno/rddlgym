@@ -24,6 +24,7 @@ domain CarParking-v1 {
         co: { non-fluent, real, default = 0.01};   // omega cost coefficent
         ca: { non-fluent, real, default = 0.0001}; // acceleration cost coefficent
 
+        step:  { state-fluent, real, default = 0.0 }; // timestep
         x:     { state-fluent, real, default = 0.0 }; // x-position of the point midway between the back wheels
         y:     { state-fluent, real, default = 0.0 }; // y-position of the point midway between the back wheels
         theta: { state-fluent, real, default = 0.0 }; // angle of the car relative to the x-axis
@@ -44,13 +45,21 @@ domain CarParking-v1 {
         y' = y + b * sin[theta];
         theta' = theta + arcsin[ sin[omega] * (f / d) ];
         v' = v + h * a;
+
+        step' = step + 1.0;
     };
 
-    reward = sqrt[ pow[x, 2] + pow[px, 2] ] - px
-             + sqrt[ pow[y, 2] + pow[py, 2] ] - py
-             + sqrt[ pow[theta, 2] + pow[pt, 2] ] - pt
-             + sqrt[ pow[v, 2] + pow[pv, 2] ] - pv
-             + co * pow[omega, 2] + ca * pow[a, 2];
+    reward =
+        co * pow[omega, 2] + ca * pow[a, 2] +
+        if (step' < 200) then
+            0.01 * (sqrt[ pow[x, 2] + pow[px, 2] ] - px +
+                    sqrt[ pow[y, 2] + pow[py, 2] ] - py)
+            else
+                sqrt[ pow[x, 2] + pow[px, 2] ] - px +
+                sqrt[ pow[y, 2] + pow[py, 2] ] - py +
+                sqrt[ pow[theta, 2] + pow[pt, 2] ] - pt +
+                sqrt[ pow[v, 2] + pow[pv, 2] ] - pv
+        ;
 
     action-preconditions {
         abs[omega] <= 0.5;
@@ -79,6 +88,6 @@ instance inst1 {
     };
 
     max-nondef-actions = pos-inf;
-    horizon = 500;
+    horizon = 200;
     discount = 1.0;
 }
