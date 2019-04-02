@@ -49,6 +49,7 @@ def parse_model(filename, verbose=False):
     parser = RDDLParser(verbose=verbose)
     parser.build()
     model = parser.parse(rddl)
+    model.build()
     return model
 
 
