@@ -13,8 +13,12 @@
 # You should have received a copy of the GNU General Public License
 # along with rddlgym. If not, see <http://www.gnu.org/licenses/>.
 
+# pylint: disable=missing-docstring
+
+
 from rddlgym.utils import make, load, Mode
 
 RAW = Mode.RAW
 AST = Mode.AST
 SCG = Mode.SCG
+GYM = Mode.GYM
