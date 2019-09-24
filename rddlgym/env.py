@@ -51,10 +51,15 @@ class RDDLEnv(gym.Env):
         self._state = None
         self._timestep = None
 
+        self._horizon = self._compiler.rddl.instance.horizon
+
     @property
     def horizon(self):
-        """Returns the RDDL instance horizon."""
-        return self._compiler.rddl.instance.horizon
+        return self._horizon
+
+    @property
+    def timestep(self):
+        return self._timestep
 
     def _create_observation_space(self):
         return spaces.Dict(
@@ -185,7 +190,7 @@ class RDDLEnv(gym.Env):
         self._state = next_state_
         self._timestep += 1
 
-        done = self._timestep == self.horizon
+        done = self._timestep == self._horizon
         info = interms_
 
         return next_state_, reward_, done, info

@@ -27,14 +27,9 @@ import rddlgym
 from rddlgym.env import RDDLEnv
 
 
-@pytest.fixture
-def rddl():
-    return "Navigation-v2"
-
-
-@pytest.fixture(scope="function")
-def env(rddl):
-    env_ = rddlgym.make(rddl, mode=rddlgym.GYM)
+@pytest.fixture(scope="function", params=["Navigation-v1", "Navigation-v2"])
+def env(request):
+    env_ = rddlgym.make(request.param, mode=rddlgym.GYM)
     yield env_
     env_.close()
 
