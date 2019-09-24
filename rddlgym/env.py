@@ -22,8 +22,6 @@ from gym import spaces
 import numpy as np
 import tensorflow as tf
 
-from rddl2tf.core.fluent import TensorFluent
-
 import rddlgym
 
 
@@ -50,8 +48,8 @@ class RDDLEnv(gym.Env):
             self._action_inputs = self._build_action_inputs()
             self._interms, self._next_state, self._reward = self._build_model_ops()
 
-        self.state = None
-        self.timestep = None
+        self._state = None
+        self._timestep = None
 
     @property
     def horizon(self):
@@ -84,7 +82,7 @@ class RDDLEnv(gym.Env):
                 {
                     name: tf.compat.v1.placeholder(
                         fluent.dtype,
-                        shape=fluent.shape.fluent_shape,
+                        shape=(1, *fluent.shape.fluent_shape),
                         name=name.replace("/", "-"),
                     )
                     for name, fluent in self._compiler.initial_state_fluents
@@ -99,7 +97,7 @@ class RDDLEnv(gym.Env):
                 {
                     name: tf.compat.v1.placeholder(
                         fluent.dtype,
-                        shape=fluent.shape.fluent_shape,
+                        shape=(1, *fluent.shape.fluent_shape),
                         name=name.replace("/", "-"),
                     )
                     for name, fluent in self._compiler.default_action_fluents
@@ -109,31 +107,27 @@ class RDDLEnv(gym.Env):
             return action_inputs
 
     def _build_model_ops(self):
-        state = tuple(
-            TensorFluent(self._state_inputs[name], fluent.scope.as_list())
-            for name, fluent in self._compiler.initial_state_fluents
-        )
-
-        action = tuple(
-            TensorFluent(self._action_inputs[name], fluent.scope.as_list())
-            for name, fluent in self._compiler.default_action_fluents
-        )
+        state = self._state_inputs.values()
+        action = self._action_inputs.values()
 
         interms, next_state = self._compiler.cpfs(state, action)
         reward = self._compiler.reward(state, action, next_state)
+
+        interms = list(map(lambda fluent: fluent.tensor, interms))
+        next_state = list(map(lambda fluent: fluent.tensor, next_state))
 
         return interms, next_state, reward
 
     def reset(self):
         """Resets the environment state and timestep."""
-        self.timestep = 0
-        self.state = OrderedDict(
+        self._timestep = 0
+        self._state = OrderedDict(
             {
                 name: self._sess.run(fluent.tensor)
                 for name, fluent in self._compiler.initial_state_fluents
             }
         )
-        return self.state, self.timestep
+        return self._state, self._timestep
 
     def step(self, action):
         """Execute `action` in the current state and timestep.
@@ -149,15 +143,19 @@ class RDDLEnv(gym.Env):
             done (bool),
             info (Dict[str, np.array])
         """
-        interms = list(map(lambda fluent: fluent.tensor, self._interms))
-        next_state = list(map(lambda fluent: fluent.tensor, self._next_state))
+        action = OrderedDict(
+            {name: value[np.newaxis, ...] for name, value in action.items()}
+        )
+
+        state = OrderedDict(
+            {name: value[np.newaxis, ...] for name, value in self._state.items()}
+        )
 
         interms_, next_state_, reward_ = self._sess.run(
-            [interms, next_state, self._reward],
+            [self._interms, self._next_state, self._reward],
             feed_dict={
                 **{
-                    self._state_inputs[name]: self.state[name]
-                    for name in self._state_inputs
+                    self._state_inputs[name]: state[name] for name in self._state_inputs
                 },
                 **{
                     self._action_inputs[name]: action[name]
@@ -167,15 +165,27 @@ class RDDLEnv(gym.Env):
         )
 
         interms_ = OrderedDict(
-            zip(self._compiler.rddl.domain.intermediate_cpfs, interms_)
+            {
+                name: value[0]
+                for name, value in zip(
+                    self._compiler.rddl.domain.interm_fluent_ordering, interms_
+                )
+            }
         )
-        next_state_ = OrderedDict(zip(self._state_inputs, next_state_))
-        reward_ = reward_[0]
+        next_state_ = OrderedDict(
+            {
+                name: value[0]
+                for name, value in zip(
+                    self._compiler.rddl.domain.state_fluent_ordering, next_state_
+                )
+            }
+        )
+        reward_ = reward_[0][0]
 
-        self.state = next_state_
-        self.timestep += 1
+        self._state = next_state_
+        self._timestep += 1
 
-        done = self.timestep == self.horizon
+        done = self._timestep == self.horizon
         info = interms_
 
         return next_state_, reward_, done, info

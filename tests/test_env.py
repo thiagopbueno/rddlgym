@@ -29,7 +29,7 @@ from rddlgym.env import RDDLEnv
 
 @pytest.fixture
 def rddl():
-    return "Navigation-v1"
+    return "Navigation-v2"
 
 
 @pytest.fixture(scope="function")
@@ -43,8 +43,8 @@ def test_init(env):
     assert isinstance(env, RDDLEnv)
     assert env.__class__.__bases__[0] == gym.Env
     assert isinstance(env._compiler, rddl2tf.DefaultCompiler)
-    assert env.timestep is None
-    assert env.state is None
+    assert env._timestep is None
+    assert env._state is None
     assert isinstance(env._sess, tf.Session)
     assert env._sess.graph is env._compiler.graph
 
@@ -99,13 +99,12 @@ def test_build_transition_ops(env):
         fluent_name = fluent_name.replace("-", "/")
         assert tensor_scope == "state_cpfs"
         assert fluent_name in fluents
-        assert not tensor_fluent.batch
 
 
 def test_build_reward_ops(env):
     assert isinstance(env._reward, tf.Tensor)
     assert env._reward.dtype == tf.float32
-    assert env._reward.shape == (1,)
+    assert env._reward.shape.as_list() == [1, 1]
 
 
 def test_reset(env):
@@ -115,13 +114,12 @@ def test_reset(env):
 
 
 def test_step(env):
-    _ = env.reset()
-    timestep = env.timestep
+    _, timestep = env.reset()
     action = env.action_space.sample()
     next_state, reward, done, info = env.step(action)
     assert next_state in env.observation_space
-    assert env.state is next_state
-    assert env.timestep == timestep + 1
+    assert env._state is next_state
+    assert env._timestep == timestep + 1
     assert isinstance(reward, np.float32)
     assert isinstance(done, bool)
     assert isinstance(info, dict)
@@ -150,4 +148,4 @@ def _check_tensors(tensors, fluents):
         assert name in fluents
         assert isinstance(tensor, tf.Tensor)
         assert tensor.dtype == fluents[name].dtype
-        assert tensor.shape == fluents[name].shape.fluent_shape
+        assert list(tensor.shape[1:]) == list(fluents[name].shape.fluent_shape)
