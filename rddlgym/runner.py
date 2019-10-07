@@ -16,10 +16,7 @@
 # pylint: disable=missing-docstring
 
 
-from collections import namedtuple
-
-
-Transition = namedtuple("Transition", "step state action reward next_state info done")
+from rddlgym.trajectory import Trajectory
 
 
 class Runner:
@@ -53,16 +50,14 @@ class Runner:
         state, timestep = self.env.reset()
         done = False
 
-        total_reward = 0.0
-        trajectory = []
+        trajectory = Trajectory()
 
         while not done:
             action = self.planner(state, timestep)
             next_state, reward, done, info = self.env.step(action)
-            total_reward += reward
 
-            trajectory.append(
-                Transition(timestep, state, action, reward, next_state, info, done)
+            trajectory.add_transition(
+                timestep, state, action, reward, next_state, info, done
             )
 
             if mode is not None:
@@ -76,7 +71,7 @@ class Runner:
             state = next_state
             timestep = self.env.timestep
 
-        return total_reward, trajectory
+        return trajectory
 
     def close(self):
         """Closes the environment."""

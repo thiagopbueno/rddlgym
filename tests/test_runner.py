@@ -21,7 +21,7 @@ import numpy as np
 import pytest
 
 from rddlgym import make, GYM
-from rddlgym.runner import Runner
+from rddlgym import Runner
 
 
 HORIZON = 20
@@ -40,7 +40,7 @@ def runner(request):
 
 
 def test_run(runner):
-    total_reward, trajectory = runner.run()
+    trajectory = runner.run()
     assert len(trajectory) == runner.env._horizon
 
     for idx, transition in enumerate(trajectory):
@@ -57,5 +57,6 @@ def test_run(runner):
     assert trajectory[-1].done
 
     assert np.isclose(
-        total_reward, sum(map(lambda transition: transition.reward, trajectory))
+        trajectory.total_reward,
+        sum(map(lambda transition: transition.reward, trajectory)),
     )
