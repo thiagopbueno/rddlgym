@@ -16,6 +16,7 @@
 # pylint: disable=missing-docstring
 
 
+from rddlgym.runner import Runner
 from rddlgym.utils import make, load, Mode
 
 RAW = Mode.RAW
