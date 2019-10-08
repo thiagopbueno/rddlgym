@@ -51,10 +51,16 @@ class RDDLEnv(gym.Env):
         self._state = None
         self._timestep = None
 
-        self._horizon = self._compiler.rddl.instance.horizon
+        self._horizon = None
+
+    def set_horizon(self, horizon):
+        self._horizon = horizon
 
     @property
     def horizon(self):
+        if self._horizon is None:
+            return self._compiler.rddl.instance.horizon
+
         return self._horizon
 
     @property
@@ -190,7 +196,7 @@ class RDDLEnv(gym.Env):
         self._state = next_state_
         self._timestep += 1
 
-        done = self._timestep == self._horizon
+        done = self._timestep == self.horizon
         info = interms_
 
         return next_state_, reward_, done, info
