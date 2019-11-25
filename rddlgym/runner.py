@@ -50,7 +50,7 @@ class Runner:
         state, timestep = self.env.reset()
         done = False
 
-        trajectory = Trajectory()
+        trajectory = Trajectory(self.env)
 
         while not done:
             action = self.planner(state, timestep)

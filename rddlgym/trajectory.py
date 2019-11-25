@@ -14,26 +14,88 @@
 # along with rddlgym. If not, see <http://www.gnu.org/licenses/>.
 
 
-# pylint: disable=missing-docstring,too-many-arguments
+# pylint: disable=missing-docstring,too-many-locals,protected-access
 
 
 from collections import OrderedDict, namedtuple
+import numpy as np
+import pandas as pd
 
 
 Transition = namedtuple("Transition", "step state action reward next_state info done")
 
 
 class Trajectory:
-    """Trajectory class manages the sequence of state-action-reward
-    transitions."""
+    """Trajectory class handles state-action-interm-reward sequences."""
 
-    def __init__(self):
+    def __init__(self, env):
+        self.env = env
+
         self._trajectory = []
 
     def add_transition(self, step, state, action, reward, next_state, info, done):
         """Adds transition to the trajectory."""
+        # pylint: disable=too-many-arguments
         transition = Transition(step, state, action, reward, next_state, info, done)
         self._trajectory.append(transition)
+
+    def as_dataframe(self):
+        """Returns the trajectory as a dataframe with columns as fluent variables."""
+        # pylint: disable=too-many-branches
+        state_fluent_variables = self.env._compiler.rddl.state_fluent_variables
+        states_dict = OrderedDict({})
+        for _, state_vars in state_fluent_variables:
+            for name in state_vars:
+                states_dict[name] = np.empty(shape=(len(self),))
+
+        action_fluent_variables = self.env._compiler.rddl.action_fluent_variables
+        actions_dict = OrderedDict({})
+        for _, action_vars in action_fluent_variables:
+            for name in action_vars:
+                actions_dict[name] = np.empty(shape=(len(self),))
+
+        interm_fluent_variables = self.env._compiler.rddl.interm_fluent_variables
+        interms_dict = OrderedDict({})
+        for _, interm_vars in interm_fluent_variables:
+            for name in interm_vars:
+                interms_dict[name] = np.empty(shape=(len(self),))
+
+        reward_dict = {"reward": np.empty(shape=len(self))}
+
+        done_dict = {"done": np.empty(shape=len(self))}
+
+        for transition in self._trajectory:
+            step = transition.step
+
+            state = transition.state
+            for fluent_name, state_vars in state_fluent_variables:
+                for i, fluent_variable in enumerate(state_vars):
+                    fluent_value = np.reshape(state[fluent_name], -1)
+                    states_dict[fluent_variable][step] = fluent_value[i]
+
+            action = transition.action
+            for fluent_name, action_vars in action_fluent_variables:
+                for i, fluent_variable in enumerate(action_vars):
+                    fluent_value = np.reshape(action[fluent_name], -1)
+                    actions_dict[fluent_variable][step] = fluent_value[i]
+
+            interm = transition.info
+            for fluent_name, interm_vars in interm_fluent_variables:
+                for i, fluent_variable in enumerate(interm_vars):
+                    fluent_value = np.reshape(interm[fluent_name], -1)
+                    interms_dict[fluent_variable][step] = fluent_value[i]
+
+            reward = transition.reward
+            reward_dict["reward"][step] = reward
+
+            done = transition.done
+            done_dict["done"][step] = done
+
+        trajectory_dict = OrderedDict(
+            {**states_dict, **actions_dict, **interms_dict, **reward_dict, **done_dict}
+        )
+
+        return pd.DataFrame(data=trajectory_dict)
 
     @property
     def states(self):

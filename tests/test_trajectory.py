@@ -13,7 +13,7 @@
 # You should have received a copy of the GNU General Public License
 # along with rddlgym. If not, see <http://www.gnu.org/licenses/>.
 
-# pylint: disable=missing-docstring,redefined-outer-name,invalid-name
+# pylint: disable=missing-docstring,redefined-outer-name,invalid-name,protected-access
 
 
 import numpy as np
@@ -70,3 +70,18 @@ def test_rewards(trajectory):
 def test_total_reward(trajectory):
     total_reward = trajectory.total_reward
     assert np.allclose(total_reward, sum(trajectory.rewards))
+
+
+def test_as_dataframe(trajectory):
+    rddl = trajectory.env._compiler.rddl
+    state_vars = rddl.state_fluent_variables
+    action_vars = rddl.action_fluent_variables
+    interm_vars = rddl.interm_fluent_variables
+
+    state_len = sum(len(fluent_vars) for _, fluent_vars in state_vars)
+    action_len = sum(len(fluent_vars) for _, fluent_vars in action_vars)
+    interm_len = sum(len(fluent_vars) for _, fluent_vars in interm_vars)
+
+    df = trajectory.as_dataframe()
+    assert len(df) == len(trajectory)
+    assert len(df.columns) == state_len + action_len + interm_len + 2
