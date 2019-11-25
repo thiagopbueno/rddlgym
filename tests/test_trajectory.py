@@ -16,7 +16,10 @@
 # pylint: disable=missing-docstring,redefined-outer-name,invalid-name,protected-access
 
 
+import tempfile
+
 import numpy as np
+import pandas as pd
 import pytest
 
 from rddlgym import make, GYM, Runner
@@ -85,3 +88,12 @@ def test_as_dataframe(trajectory):
     df = trajectory.as_dataframe()
     assert len(df) == len(trajectory)
     assert len(df.columns) == state_len + action_len + interm_len + 2
+
+
+def test_save(trajectory):
+    df = trajectory.as_dataframe()
+    with tempfile.NamedTemporaryFile(suffix=".csv") as temp:
+        filepath = temp.name
+        trajectory.save(filepath)
+        df_ = pd.read_csv(filepath)
+        assert np.allclose(df_.to_numpy(), df.to_numpy())

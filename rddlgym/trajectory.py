@@ -97,6 +97,13 @@ class Trajectory:
 
         return pd.DataFrame(data=trajectory_dict)
 
+    def save(self, filepath):
+        """Saves the trajectory in the filepath as a CSV file."""
+        # pylint: disable=invalid-name
+        df = self.as_dataframe()
+        df.to_csv(filepath, index=False)
+        return df
+
     @property
     def states(self):
         """Returns a dict mapping state fluent name to sequence of values."""
