@@ -43,6 +43,8 @@ class RDDLEnv(gym.Env):
         self.observation_space = self._create_observation_space()
         self.action_space = self._create_action_space()
 
+        self.non_fluents = self._eval_non_fluents()
+
         with self._compiler.graph.as_default():
             self._state_inputs = self._build_state_inputs()
             self._action_inputs = self._build_action_inputs()
@@ -66,6 +68,14 @@ class RDDLEnv(gym.Env):
     @property
     def timestep(self):
         return self._timestep
+
+    def _eval_non_fluents(self):
+        non_fluents = {}
+        for non_fluent in self._compiler.non_fluents:
+            name = non_fluent.name[:-2].replace("-", "/")
+            value = self._sess.run(non_fluent.tensor)
+            non_fluents[name] = value
+        return non_fluents
 
     def _create_observation_space(self):
         return spaces.Dict(

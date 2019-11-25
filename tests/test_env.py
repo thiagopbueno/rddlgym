@@ -78,6 +78,17 @@ def test_action_sample(env):
     assert action in env.action_space
 
 
+def test_eval_non_fluents(env):
+    non_fluents = env._compiler.non_fluents
+    non_fluents_ = env._eval_non_fluents()
+    assert len(non_fluents_) == len(non_fluents)
+    for (name, value), non_fluent in zip(non_fluents_.items(), non_fluents):
+        arity = int(name[name.index("/") + 1 :])
+        assert arity == len(non_fluent.scope)
+        assert list(value.shape) == non_fluent.shape.as_list()
+        assert non_fluent.dtype == value.dtype
+
+
 def test_state_inputs(env):
     _check_tensors(env._state_inputs, dict(env._compiler.initial_state_fluents))
 
