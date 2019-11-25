@@ -66,6 +66,21 @@ class Trajectory:
         return actions_dict
 
     @property
+    def infos(self):
+        """Returns a dict mapping action fluent name to sequence of values."""
+        if not self._trajectory:
+            return {}
+
+        fluents = self._trajectory[0].info.keys()
+        actions_dict = OrderedDict({name: [] for name in fluents})
+
+        for transition in self._trajectory:
+            for name, value in transition.info.items():
+                actions_dict[name].append(value)
+
+        return actions_dict
+
+    @property
     def rewards(self):
         """Returns list of rewards."""
         if not self._trajectory:

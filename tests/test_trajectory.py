@@ -53,6 +53,15 @@ def test_actions(trajectory):
             assert np.allclose(value, trajectory[t].action[fluent])
 
 
+def test_interms(trajectory):
+    interms = trajectory.infos
+    assert all(len(fluent) == len(trajectory) for fluent in interms.values())
+    for fluent, value_lst in interms.items():
+        for t, value in enumerate(value_lst):
+            assert fluent in trajectory[t].info
+            assert np.allclose(value, trajectory[t].info[fluent])
+
+
 def test_rewards(trajectory):
     rewards = trajectory.rewards
     assert len(rewards) == len(trajectory)
