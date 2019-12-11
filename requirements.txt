@@ -1,2 +1,2 @@
-pyrddl>=0.1.7
-rddl2tf>=0.4.7
+pyrddl
+rddl2tf
