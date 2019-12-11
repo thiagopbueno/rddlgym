@@ -1,4 +1,4 @@
-# rddlgym [![License](https://img.shields.io/aur/license/yaourt.svg)](https://github.com/thiagopbueno/rddlgym/blob/master/LICENSE)
+# rddlgym [![Build Status](https://travis-ci.org/thiagopbueno/rddlgym.svg?branch=master)](https://travis-ci.org/thiagopbueno/rddlgym) [![License](https://img.shields.io/aur/license/yaourt.svg)](https://github.com/thiagopbueno/rddlgym/blob/master/LICENSE)
 
 
 A toolkit for working with RDDL domains in Python3.
