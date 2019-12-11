@@ -33,6 +33,7 @@ setup(
     author_email="thiago.pbueno@gmail.com",
     description="rddlgym: A toolkit for working with RDDL domains in Python3.",
     long_description=read("README.md"),
+    long_description_content_type="text/markdown",
     license="GNU General Public License v3.0",
     keywords=["rddl", "toolkit"],
     url="https://github.com/thiagopbueno/rddlgym",
