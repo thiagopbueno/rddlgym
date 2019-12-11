@@ -63,11 +63,6 @@ class Runner:
             if mode is not None:
                 self.env.render(mode)
 
-            if self.debug:
-                self._print_debug_info(
-                    timestep, state, action, reward, next_state, done, info
-                )
-
             state = next_state
             timestep = self.env.timestep
 
@@ -76,6 +71,7 @@ class Runner:
     def close(self):
         """Closes the environment."""
         self.env.close()
+        self.planner.close()
 
     def __enter__(self):
         self.build()
@@ -83,28 +79,3 @@ class Runner:
 
     def __exit__(self, exc_type, exc_value, exc_traceback):
         self.close()
-
-    @staticmethod
-    def _print_debug_info(timestep, state, action, reward, next_state, done, info):
-        # pylint: disable=too-many-arguments
-        print(f"::: Timestep = {timestep} :::")
-        print()
-        print(">> State:")
-        for name, fluent in state.items():
-            print(f"{name} = {fluent}")
-        print()
-        print(">> Action:")
-        for name, fluent in action.items():
-            print(f"{name} = {fluent}")
-        print()
-        print(">> Next State:")
-        for name, fluent in next_state.items():
-            print(f"{name} = {fluent}")
-        print()
-        print(">> Info:")
-        for name, fluent in info.items():
-            print(f"{name} = {fluent}")
-        print()
-        print(f">> Reward = {reward}")
-        print(f">> Terminal = {done}")
-        print()
