@@ -18,17 +18,21 @@ rddlgym can be used as a standalone script or programmatically.
 
 ```text
 $ rddlgym --help
-usage: rddlgym [-h] [--rddl RDDL] [-v] {list,info,show}
+usage: rddlgym [-h] [--rddl RDDL] [--filepath FILEPATH] [--logdir LOGDIR] [-v]
+               {list,info,show,parse,run,viz}
 
 rddl-gym: A toolkit for working with RDDL domains in Python3.
 
 positional arguments:
-  {list,info,show}  available commands
+  {list,info,show,parse,run,viz}
+                        available commands
 
 optional arguments:
-  -h, --help        show this help message and exit
-  --rddl RDDL       RDDL id
-  -v, --verbose     verbosity mode
+  -h, --help            show this help message and exit
+  --rddl RDDL           RDDL id
+  --filepath FILEPATH   trajectory filepath
+  --logdir LOGDIR       logdir
+  -v, --verbose         verbosity mode
 ```
 
 
