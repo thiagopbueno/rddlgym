@@ -75,7 +75,7 @@ def compile_model(filename):
     return compiler
 
 
-def load(filename, mode=Mode.AST, verbose=False):
+def load(filename, mode=Mode.AST, config=None, verbose=False):
     """Loads `filename` with given `mode`."""
     # pylint: disable=no-else-return
     if mode == Mode.RAW:
@@ -85,22 +85,22 @@ def load(filename, mode=Mode.AST, verbose=False):
     elif mode == Mode.SCG:
         return compile_model(filename)
     elif mode == Mode.GYM:
-        return create_env(filename)
+        return create_env(filename, config)
     else:
         raise ValueError("Invalid rddlgym mode: {}".format(mode))
 
 
-def make(rddl, mode=Mode.AST, verbose=False):
+def make(rddl, mode=Mode.AST, config=None, verbose=False):
     """Returns `rddl` object for the given `mode`."""
     # pylint: disable=no-else-return
     if os.path.isfile(rddl):
-        return load(rddl, mode, verbose)
+        return load(rddl, mode, config, verbose)
     else:
         dirname = os.path.join(os.path.dirname(rddlgym.__file__), "files")
         filename = os.path.join(dirname, "{}.rddl".format(rddl))
         if not os.path.isfile(filename):
             raise ValueError("Couldn't find RDDL domain: {}".format(rddl))
-        return load(filename, mode, verbose)
+        return load(filename, mode, config, verbose)
 
 
 def list_all():
