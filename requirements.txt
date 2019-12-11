@@ -1,5 +1,7 @@
 numpy
 pandas
 matplotlib
+tensorflow<2.0.0
+gym
 pyrddl
 rddl2tf
