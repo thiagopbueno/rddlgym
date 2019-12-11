@@ -22,7 +22,7 @@ import json
 import os
 
 from pyrddl.parser import RDDLParser
-from rddl2tf import DefaultCompiler
+from rddl2tf.compilers import DefaultCompiler
 
 import rddlgym
 from rddlgym.env import RDDLEnv
