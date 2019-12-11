@@ -63,9 +63,9 @@ def parse_model(filename, verbose=False):
     return model
 
 
-def create_env(filename):
+def create_env(filename, config=None):
     """Returns a RDDLEnv object for the given RDDL file."""
-    return RDDLEnv(filename)
+    return RDDLEnv(filename, config)
 
 
 def compile_model(filename):
