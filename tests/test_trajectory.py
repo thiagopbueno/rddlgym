@@ -25,7 +25,7 @@ import pytest
 from rddlgym import make, GYM, Runner
 
 
-@pytest.fixture(scope="module", params=["Navigation-v2"])
+@pytest.fixture(scope="module", params=["Navigation-v2", "Reservoir-8"])
 def trajectory(request):
     rddl = request.param
     env = make(rddl, mode=GYM)

@@ -18,6 +18,8 @@
 
 
 from collections import OrderedDict, namedtuple
+import os
+
 import numpy as np
 import pandas as pd
 
@@ -100,6 +102,10 @@ class Trajectory:
     def save(self, filepath):
         """Saves the trajectory in the filepath as a CSV file."""
         # pylint: disable=invalid-name
+        dirname = os.path.dirname(filepath)
+        if not os.path.exists(dirname):
+            os.makedirs(dirname)
+
         df = self.as_dataframe()
         df.to_csv(filepath, index=False)
         return df
