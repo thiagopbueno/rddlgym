@@ -17,6 +17,7 @@
 
 
 from collections import OrderedDict
+
 import gym
 from gym import spaces
 import numpy as np
@@ -34,11 +35,21 @@ class RDDLEnv(gym.Env):
 
     # pylint: disable=too-many-instance-attributes
 
-    def __init__(self, rddl):
+    def __init__(self, rddl, config=None):
         self._compiler = rddlgym.make(rddl, mode=rddlgym.SCG)
         self._compiler.init()
 
-        self._sess = tf.Session(graph=self._compiler.graph)
+        self.config = config
+
+        self._graph = self._compiler.graph
+
+        self._config_proto = tf.ConfigProto(
+            inter_op_parallelism_threads=1,
+            intra_op_parallelism_threads=1,
+            log_device_placement=False,
+        )
+
+        self._sess = tf.Session(graph=self._graph, config=self._config_proto)
 
         self.observation_space = self._create_observation_space()
         self.action_space = self._create_action_space()
