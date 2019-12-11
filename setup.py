@@ -40,7 +40,7 @@ setup(
     packages=find_packages(),
     scripts=["scripts/rddlgym"],
     python_requires=">=3.5",
-    install_requires=["pyrddl", "rddl2tf"],
+    install_requires=["numpy", "pandas", "matplotlib", "pyrddl", "rddl2tf"],
     include_package_data=True,
     zip_safe=False,
     classifiers=[
