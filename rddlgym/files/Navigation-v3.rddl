@@ -36,7 +36,7 @@ domain Navigation {
         deceleration(?z) = 2.0 / (1.0 + exp[-DECELERATION_ZONE_DECAY(?z) * distance(?z) ]) - 1.00;
         location'(?l) = Normal(
                             location(?l) + (prod_{?z:zone} [deceleration(?z)]) * move(?l),
-                            MOVE_VARIANCE_MULT(?l) * abs[move(?l)]);
+                            MOVE_VARIANCE_MULT(?l));
     };
 
     reward = - sqrt[ sum_{?l:dim}[ pow[ GOAL(?l) - location(?l), 2 ] ] ];
