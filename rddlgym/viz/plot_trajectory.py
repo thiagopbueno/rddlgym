@@ -13,28 +13,25 @@
 # You should have received a copy of the GNU General Public License
 # along with rddlgym. If not, see <http://www.gnu.org/licenses/>.
 
+# pylint: disable=invalid-name,missing-docstring
+
 
 from collections import defaultdict
+import os
 
 import matplotlib.pyplot as plt
 import matplotlib._color_data as mcd
 import numpy as np
+import pandas as pd
 
 
 plt.style.use("seaborn")
 
 
-def plot_trajectory(rddl, df, group_by_fluent=True, group_by_obj=False):
-    print(df.describe())
-    print(df.mean())
-    print(df.min())
-    print(df.max())
-
-    reward = df.pop("reward")
-    done = df.pop("done")
-
-    objects = defaultdict(lambda: [])
+def _get_pvariables_dict(df):
     fluents = defaultdict(lambda: [])
+    objects = defaultdict(lambda: [])
+
     for col in df.columns:
         fluent = col[: col.index("(")]
         fluents[fluent].append(col)
@@ -43,60 +40,120 @@ def plot_trajectory(rddl, df, group_by_fluent=True, group_by_obj=False):
         for obj in objs:
             objects[obj].append(col)
 
-    steps = len(df)
+    return fluents, objects
 
+
+def _get_colors(df):
     xkcd_colors = mcd.XKCD_COLORS
-
     color_names = np.random.choice(list(xkcd_colors), len(df.columns), replace=False)
     colors = {
         fluent_name: xkcd_colors[color_name]
         for fluent_name, color_name in zip(df.columns, color_names)
     }
+    return colors
 
-    if group_by_fluent:
-        fig, axes = plt.subplots(
-            nrows=len(fluents), ncols=1, sharex=True, constrained_layout=True
-        )
-        fig.suptitle(f"{rddl} (fluent view)", fontweight="bold", fontsize=16)
 
-        for i, (fluent, fluent_vars) in enumerate(fluents.items()):
+def _plot_trace(df, variables, colors, group_by_fluent):
+    fig, axes = plt.subplots(
+        nrows=len(variables), ncols=1, sharex=True, constrained_layout=True
+    )
 
-            for col in fluent_vars:
-                values = df[col]
+    for i, (pvariable, fluent_vars) in enumerate(variables.items()):
+
+        for col in fluent_vars:
+            values = df[col]
+
+            if group_by_fluent:
                 label = col[col.index("(") + 1 : -1]
-                color = colors[col]
-                axes[i].plot(values, marker=".", label=label, color=color)
-
-            axes[i].set_title(fluent, fontweight="bold")
-            axes[i].legend(loc="lower right")
-            axes[i].set_xticks(range(steps))
-
-            if i == len(fluents) - 1:
-                axes[i].set_xlabel("Timesteps")
-
-    if group_by_obj:
-        fig, axes = plt.subplots(
-            nrows=len(objects), ncols=1, sharex=True, constrained_layout=True
-        )
-        fig.suptitle(f"{rddl} (object view)", fontweight="bold", fontsize=16)
-
-        for i, (obj, fluent_vars) in enumerate(objects.items()):
-
-            for col in fluent_vars:
-                values = df[col]
+            else:
                 label = col[: col.index("(")]
-                color = colors[col]
-                axes[i].plot(values, marker=".", label=label, color=color)
 
-            axes[i].set_title(obj, fontweight="bold")
-            axes[i].set_xticks(range(steps))
-            axes[i].legend(loc="lower right")
+            color = colors[col]
 
-            if i == len(fluents) - 1:
-                axes[i].set_xlabel("Timesteps")
+            axes[i].plot(values, marker=".", label=label, color=color)
 
-    plt.show()
+        axes[i].set_title(pvariable, fontweight="bold")
+        axes[i].legend(loc="lower right")
+        axes[i].set_xticks(range(len(df)))
+
+        if i == len(variables) - 1:
+            axes[i].set_xlabel("Timesteps")
+
+    return fig
 
 
-def plot_reward(df):
-    pass
+def plot_trajectory(filepath):
+    df = pd.read_csv(filepath)
+    df.pop("reward")
+    df.pop("done")
+
+    colors = _get_colors(df)
+    fluents, objects = _get_pvariables_dict(df)
+
+    fig_by_fluents = _plot_trace(df, fluents, colors, group_by_fluent=True)
+    fig_by_objects = _plot_trace(df, objects, colors, group_by_fluent=False)
+
+    return fig_by_fluents, fig_by_objects
+
+
+def _plot_avg_traces(mean, std, variables, colors, group_by_fluent):
+
+    lower, upper = mean - std, mean + std
+
+    fig, axes = plt.subplots(
+        nrows=len(variables), ncols=1, sharex=True, constrained_layout=True
+    )
+
+    for i, (pvariable, fluent_vars) in enumerate(variables.items()):
+
+        for col in fluent_vars:
+
+            if group_by_fluent:
+                label = col[col.index("(") + 1 : -1]
+            else:
+                label = col[: col.index("(")]
+
+            color = colors[col]
+
+            axes[i].plot(mean[col], marker=".", label=label, color=color)
+            axes[i].fill_between(
+                mean.index,
+                lower[col],
+                upper[col],
+                alpha=0.5,
+                edgecolor=color,
+                facecolor=color,
+            )
+
+        axes[i].set_title(pvariable, fontweight="bold")
+        axes[i].legend(loc="lower right")
+        axes[i].set_xticks(range(len(mean)))
+
+        if i == len(variables) - 1:
+            axes[i].set_xlabel("Timesteps")
+
+    return fig
+
+
+def plot_all_trajectories(dirpath):
+    csv_files = []
+    for path in os.listdir(dirpath):
+        fullpath = os.path.join(dirpath, path)
+        if os.path.isdir(fullpath) and path.startswith("run"):
+            data = pd.read_csv(os.path.join(fullpath, "data.csv"))
+            csv_files.append(data)
+
+    df = pd.concat(csv_files)
+    df.pop("reward")
+    df.pop("done")
+
+    mean = df.groupby(df.index, sort=False).mean()
+    std = df.groupby(df.index, sort=False).std()
+
+    colors = _get_colors(df)
+    fluents, objects = _get_pvariables_dict(df)
+
+    fig_by_fluents = _plot_avg_traces(mean, std, fluents, colors, group_by_fluent=True)
+    fig_by_objects = _plot_avg_traces(mean, std, objects, colors, group_by_fluent=False)
+
+    return fig_by_fluents, fig_by_objects
