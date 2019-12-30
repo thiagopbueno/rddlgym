@@ -73,7 +73,7 @@ def _plot_trace(df, variables, colors, group_by_fluent):
             axes[i].plot(values, marker=".", label=label, color=color)
 
         axes[i].set_title(pvariable, fontweight="bold")
-        axes[i].legend(loc="lower right")
+        axes[i].legend(loc="lower right", frameon=True)
         axes[i].set_xticks(range(len(df)))
 
         if i == len(variables) - 1:
@@ -120,13 +120,13 @@ def _plot_avg_traces(mean, std, variables, colors, group_by_fluent):
                 mean.index,
                 lower[col],
                 upper[col],
-                alpha=0.5,
+                alpha=0.2,
                 edgecolor=color,
                 facecolor=color,
             )
 
         axes[i].set_title(pvariable, fontweight="bold")
-        axes[i].legend(loc="lower right")
+        axes[i].legend(loc="lower right", frameon=True)
         axes[i].set_xticks(range(len(mean)))
 
         if i == len(variables) - 1:

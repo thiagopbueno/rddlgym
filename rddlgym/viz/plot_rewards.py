@@ -31,8 +31,6 @@ def plot_rewards(filepath):
     reward = df.pop("reward")
     stats = reward.describe()
 
-    print(dict(stats))
-
     fig, ax = plt.subplots(nrows=1, ncols=1, constrained_layout=True)
 
     ax.plot(reward)
