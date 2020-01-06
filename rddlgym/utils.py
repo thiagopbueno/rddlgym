@@ -101,29 +101,3 @@ def make(rddl, mode=Mode.AST, config=None, verbose=False):
         if not os.path.isfile(filename):
             raise ValueError("Couldn't find RDDL domain: {}".format(rddl))
         return load(filename, mode, config, verbose)
-
-
-def list_all():
-    """Prints the list of all available domains."""
-    for domain in read_db():
-        print(domain)
-
-
-def info(rddl):
-    """Prints metadata for the `rddl` domain/instance."""
-    domains = read_db()
-    if rddl not in domains:
-        raise ValueError("Couldn't find RDDL domain: {}".format(rddl))
-    metadata = domains[rddl]
-    print(rddl)
-    print(">> Authors:      {}".format(", ".join(metadata["authors"])))
-    print(">> Date:         {}".format(metadata["date"]))
-    print(">> Requirements: {}".format(", ".join(metadata["requirements"])))
-    print(">> Description:")
-    print(metadata["description"])
-
-
-def show(rddl):
-    """Prints `rddl` string."""
-    model = make(rddl, mode=Mode.RAW)
-    print(model)

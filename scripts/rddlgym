@@ -16,62 +16,106 @@
 # along with rddlgym. If not, see <http://www.gnu.org/licenses/>.
 
 
-import argparse
 import os
 
-import pandas as pd
+import click
+import matplotlib.pyplot as plt
 
-import rddlgym
 from rddlgym import Runner
-from rddlgym.utils import list_all, info, show, make
+from rddlgym.utils import read_db, make, Mode
 from rddlgym.viz.plot_trajectory import plot_trajectory
+from rddlgym.viz.plot_rewards import plot_rewards
 
 
-def parse_args():
-    description = "rddl-gym: A toolkit for working with RDDL domains in Python3."
-    parser = argparse.ArgumentParser(description=description)
-    parser.add_argument(
-        "command",
-        type=str,
-        choices=["list", "info", "show", "parse", "run", "viz"],
-        help="available commands",
-    )
-    parser.add_argument("--rddl", type=str, help="RDDL id")
-    parser.add_argument("--filepath", type=str, help="trajectory filepath")
-    parser.add_argument("--logdir", type=str, help="logdir")
-    parser.add_argument("-v", "--verbose", action="store_true", help="verbosity mode")
-    return parser.parse_args()
+@click.group()
+def cli():
+    """rddlgym: A toolkit for working with RDDL domains in Python3."""
+    pass
+
+
+@cli.command()
+def ls():
+    """List all RDDL domains and instances available."""
+    for domain in read_db():
+        print(domain)
+
+
+@cli.command()
+@click.argument("rddl")
+def info(rddl):
+    """Print metadata for a `rddl` domain/instance."""
+    domains = read_db()
+    if rddl not in domains:
+        raise ValueError("Couldn't find RDDL file: {}".format(rddl))
+
+    metadata = domains[rddl]
+    print(f"### {rddl} ###")
+    print(">> Authors:      {}".format(", ".join(metadata["authors"])))
+    print(">> Date:         {}".format(metadata["date"]))
+    print(">> Requirements: {}".format(", ".join(metadata["requirements"])))
+    print(">> Description:")
+    print(metadata["description"])
+
+
+@cli.command()
+@click.argument("rddl")
+def show(rddl):
+    """Print `rddl` file."""
+    model = make(rddl, mode=Mode.RAW)
+    print(model)
+
+
+@cli.command()
+@click.argument("rddl")
+@click.option("-v", "--verbose", is_flag=True, help="Verbosity flag.")
+def parse(rddl, verbose):
+    """Check RDDL file parsing."""
+    model = make(rddl, mode=Mode.AST, verbose=verbose)
+    print("Successfully parsed RDDL ...")
+    print(model.domain.name)
+    print(model.instance.name)
+    print(model)
+
+
+@cli.command()
+@click.argument("rddl")
+@click.option(
+    "--logdir",
+    type=click.Path(),
+    default="/tmp/rddlgym/",
+    help="Directory for saving trajectory data.",
+    show_default=True,
+)
+def run(rddl, logdir):
+    """Run random policy in `rddl` domain/instance."""
+    env = make(rddl, mode=Mode.GYM)
+    filepath = os.path.join(logdir, "data.csv")
+
+    def planner(state, timestep):
+        # pylint: disable=unused-argument
+        return env.action_space.sample()
+
+    print(">> Running random policy ...")
+
+    trajectory = Runner(env, planner).run()
+    trajectory.save(filepath)
+
+    print(f">> Results saved in {filepath}.")
+    print(">> To visualize trajectory data:")
+    print(f"rddlgym viz {rddl} {filepath}")
+
+
+@cli.command()
+@click.argument("rddl")
+@click.argument("filepath", type=click.Path(exists=True))
+def viz(rddl, filepath):
+    """Visualize simulated trajectories."""
+    fig1, fig2 = plot_trajectory(filepath)
+    fig3 = plot_rewards(filepath)
+    fig1.suptitle(f"{rddl} (fluent view) ", fontweight="bold", fontsize=16)
+    fig2.suptitle(f"{rddl} (objects view)", fontweight="bold", fontsize=16)
+    plt.show()
 
 
 if __name__ == "__main__":
-    args = parse_args()
-
-    if args.command in ["info", "show", "parse"] and args.rddl is None:
-        print("Error: please provide the domain id via --rddl")
-        exit()
-
-    if args.command == "list":
-        list_all()
-    elif args.command == "info":
-        info(args.rddl)
-    elif args.command == "show":
-        show(args.rddl)
-    elif args.command == "parse":
-        model = make(args.rddl, mode=rddlgym.AST, verbose=args.verbose)
-        print(model.domain.name)
-        print(model.instance.name)
-    elif args.command == "viz":
-        df = pd.read_csv(args.filepath)
-        plot_trajectory(args.rddl, df, group_by_fluent=True, group_by_obj=True)
-    elif args.command == "run":
-        env = make(args.rddl, mode=rddlgym.GYM)
-        filepath = os.path.join(args.logdir, "data.csv")
-
-        def planner(state, timestep):
-            # pylint: disable=unused-argument
-            return env.action_space.sample()
-
-        trajectory = Runner(env, planner).run()
-        trajectory.save(filepath)
-
-        print(f"rddlgym viz --rddl {args.rddl} --filepath {filepath}")
+    cli()
