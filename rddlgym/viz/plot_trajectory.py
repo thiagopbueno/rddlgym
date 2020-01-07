@@ -82,11 +82,7 @@ def _plot_trace(df, variables, colors, group_by_fluent):
     return fig
 
 
-def plot_trajectory(filepath):
-    df = pd.read_csv(filepath)
-    df.pop("reward")
-    df.pop("done")
-
+def plot_trajectory(df):
     colors = _get_colors(df)
     fluents, objects = _get_pvariables_dict(df)
 
@@ -135,17 +131,8 @@ def _plot_avg_traces(mean, std, variables, colors, group_by_fluent):
     return fig
 
 
-def plot_all_trajectories(dirpath):
-    csv_files = []
-    for path in os.listdir(dirpath):
-        fullpath = os.path.join(dirpath, path)
-        if os.path.isdir(fullpath) and path.startswith("run"):
-            data = pd.read_csv(os.path.join(fullpath, "data.csv"))
-            csv_files.append(data)
-
-    df = pd.concat(csv_files)
-    df.pop("reward")
-    df.pop("done")
+def plot_all_trajectories(dataframes):
+    df = pd.concat(dataframes)
 
     mean = df.groupby(df.index, sort=False).mean()
     std = df.groupby(df.index, sort=False).std()

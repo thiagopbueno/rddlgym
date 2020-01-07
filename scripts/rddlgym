@@ -105,17 +105,5 @@ def run(rddl, logdir):
     print(f"rddlgym viz {rddl} {filepath}")
 
 
-@cli.command()
-@click.argument("rddl")
-@click.argument("filepath", type=click.Path(exists=True))
-def viz(rddl, filepath):
-    """Visualize simulated trajectories."""
-    fig1, fig2 = plot_trajectory(filepath)
-    fig3 = plot_rewards(filepath)
-    fig1.suptitle(f"{rddl} (fluent view) ", fontweight="bold", fontsize=16)
-    fig2.suptitle(f"{rddl} (objects view)", fontweight="bold", fontsize=16)
-    plt.show()
-
-
 if __name__ == "__main__":
     cli()
