@@ -17,6 +17,7 @@
 
 
 import os
+import re
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -26,14 +27,12 @@ import pandas as pd
 plt.style.use("seaborn")
 
 
-def plot_rewards(filepath):
-    df = pd.read_csv(filepath)
-    reward = df.pop("reward")
-    stats = reward.describe()
+def plot_rewards(df):
+    stats = df.describe()
 
-    fig, ax = plt.subplots(nrows=1, ncols=1, constrained_layout=True)
+    fig, ax = plt.subplots(nrows=1, ncols=1, constrained_layout=True, figsize=(12, 5))
 
-    ax.plot(reward)
+    ax.plot(df)
     ax.axhline(stats["mean"], linestyle="--", linewidth=1)
     ax.axhline(stats["max"], linestyle="--", linewidth=1)
     ax.axhline(stats["min"], linestyle="--", linewidth=1)
@@ -52,24 +51,16 @@ def plot_rewards(filepath):
     return fig
 
 
-def plot_all_rewards(dirpath):
-
-    csv_files = []
-    for path in os.listdir(dirpath):
-        fullpath = os.path.join(dirpath, path)
-        if os.path.isdir(fullpath) and path.startswith("run"):
-            data = pd.read_csv(os.path.join(fullpath, "data.csv"))
-            csv_files.append(data)
-
-    rewards = [df.pop("reward") for df in csv_files]
-
-    df = pd.concat(rewards)
+def plot_all_rewards(dataframes):
+    df = pd.concat(dataframes)
     mean = df.groupby(df.index, sort=False).mean()
     std = df.groupby(df.index, sort=False).std()
 
     lower, upper = mean - std, mean + std
 
-    fig, (ax1, ax2) = plt.subplots(nrows=1, ncols=2, constrained_layout=True)
+    fig, (ax1, ax2) = plt.subplots(
+        nrows=2, ncols=1, constrained_layout=True, figsize=(10, 5)
+    )
 
     ax1.plot(mean, linestyle="-")
     ax1.fill_between(
@@ -80,15 +71,39 @@ def plot_all_rewards(dirpath):
     ax1.set_xticks(range(len(mean)))
     ax1.set_xlabel("Timesteps")
 
-    total_rewards = [df.sum() for df in rewards]
+    total_rewards = [df.sum() for df in dataframes]
     mean, std = np.mean(total_rewards), np.std(total_rewards)
+    lower = mean - std
+    upper = mean + std
 
     num_bins = 20
     n, bins, patches = ax2.hist(total_rewards, num_bins, density=True)
     ax2.set_title("Histogram", fontweight="bold")
-    ax2.axvline(mean, linestyle="--", linewidth=1)
-    ax2.axvline(mean - std, linestyle="--", linewidth=1)
-    ax2.axvline(mean + std, linestyle="--", linewidth=1)
+    ax2.axvline(mean, linestyle="--", linewidth=1, color="red")
+    ax2.axvline(lower, linestyle="--", linewidth=1)
+    ax2.axvline(upper, linestyle="--", linewidth=1)
+
+    bbox = dict(boxstyle="round", fc="0.8")
+    ax2.annotate(s=f"mean={mean:.3f}", xy=(mean, 0.0), fontweight="bold", bbox=bbox)
+
     ax2.set_xlabel("Total Reward Per Episode")
+
+    return fig
+
+
+def plot_total_rewards(dataframes_dict):
+    x = np.arange(0, len(dataframes_dict))
+    total_rewards = np.empty((len(dataframes_dict),))
+
+    for filepath, df in dataframes_dict.items():
+        run_regex = re.search(".*/run(.*)/.*", filepath)
+        run = int(run_regex.group(1))
+        total_rewards[run] = df.sum()
+
+    fig, ax = plt.subplots(nrows=1, ncols=1, figsize=(10, 5))
+    ax.bar(x=x, height=total_rewards)
+    ax.set_title("Total Reward", fontweight="bold")
+    ax.set_xlabel("Run")
+    ax.set_xticks(x)
 
     return fig

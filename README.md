@@ -26,7 +26,6 @@ Commands:
   parse  Check RDDL file parsing.
   run    Run random policy in `rddl` domain/instance.
   show   Print `rddl` file.
-  viz    Visualize simulated trajectories.
 ```
 
 # License
