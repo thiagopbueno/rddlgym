@@ -17,6 +17,7 @@
 import os
 import re
 
+import matplotlib.pyplot as plt
 import pandas as pd
 import streamlit as st
 
@@ -133,8 +134,14 @@ st.sidebar.subheader("Views")
 view = st.sidebar.radio("Report data", ("average", "per run"))
 group_by = st.sidebar.radio("Group by", ("fluents", "objects"))
 
+st.sidebar.subheader("Plot Configuration")
+styles = sorted(plt.style.available)
+plot_style = st.sidebar.selectbox("Plotting styles", styles, index=styles.index("seaborn"))
+
 
 def main():
+    plt.style.use(plot_style)
+
     if not logdir:
         return
 

@@ -24,9 +24,6 @@ import numpy as np
 import pandas as pd
 
 
-plt.style.use("seaborn")
-
-
 def plot_total_reward_per_run(dataframes_dict):
     x = np.arange(0, len(dataframes_dict))
     total_rewards = np.empty((len(dataframes_dict),))

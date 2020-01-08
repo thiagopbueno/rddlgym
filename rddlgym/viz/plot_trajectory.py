@@ -25,9 +25,6 @@ import numpy as np
 import pandas as pd
 
 
-plt.style.use("seaborn")
-
-
 def _get_pvariables_dict(df):
     fluents = defaultdict(lambda: [])
     objects = defaultdict(lambda: [])
