@@ -21,7 +21,7 @@ import pandas as pd
 import streamlit as st
 
 from rddlgym.viz.plot_trajectory import plot_trajectory, plot_all_trajectories
-from rddlgym.viz.plot_rewards import plot_rewards, plot_all_rewards, plot_total_rewards
+from rddlgym.viz.plot_rewards import plot_rewards_per_run, plot_total_reward_histogram, plot_total_reward_per_run, plot_rewards
 
 
 @st.cache
@@ -35,6 +35,7 @@ def get_trace_dataframe(filepath):
 @st.cache
 def get_csv_filenames(dirpath):
     csv_files = []
+
     for path in os.listdir(dirpath):
         if not path.startswith("run"):
             continue
@@ -46,6 +47,19 @@ def get_csv_filenames(dirpath):
     return csv_files
 
 
+@st.cache
+def get_runs(dirpath):
+    runs = []
+
+    if os.path.isdir(dirpath):
+        for path in sorted(os.listdir(dirpath)):
+            fullpath = os.path.join(dirpath, path)
+            if os.path.isdir(fullpath) and path.startswith("run"):
+                runs.append(path)
+
+    return runs
+
+@st.cache
 def get_experiment_folders(logdir):
     folders = {"-"}
 
@@ -71,9 +85,6 @@ def plot_trace_run(dirpath, run):
     trace_by_fluents, trace_by_objects = plot_trajectory(df1)
     rewards = plot_rewards(df2)
 
-    for fig in [trace_by_fluents, trace_by_objects]:
-        fig.set_size_inches(width, height, forward=True)
-
     figs = {
         "fluents": trace_by_fluents,
         "objects": trace_by_objects,
@@ -93,40 +104,34 @@ def plot_traces(dirpath):
         rewards_dict[filepath] = df2
 
     traces_by_fluents, traces_by_objects = plot_all_trajectories(dataframes)
-    rewards_fig = plot_all_rewards(rewards_dict.values())
 
-    total_rewards_fig = plot_total_rewards(rewards_dict)
-
-    for fig in [traces_by_fluents, traces_by_objects]:
-        fig.set_size_inches(width, height, forward=True)
+    rewards_per_run = plot_rewards_per_run(rewards_dict.values())
+    total_reward_hist = plot_total_reward_histogram(rewards_dict.values())
+    total_rewards_fig = plot_total_reward_per_run(rewards_dict)
 
     figs = {
         "fluents": traces_by_fluents,
         "objects": traces_by_objects,
-        "rewards": rewards_fig,
-        "total_rewards": total_rewards_fig,
+        "total_rewards_per_run": total_rewards_fig,
+        "total_reward_hist": total_reward_hist,
+        "rewards_per_run": rewards_per_run,
     }
 
     return figs
 
 
 """
-# RDDL VisKit
+# RDDL VisKit - Trace Visualizer
 """
 
 st.sidebar.subheader("Logging Directory")
-logdir = st.sidebar.text_input("Enter a logdir (e.g. /path/to/dir/)")
+logdir = st.sidebar.text_input("Enter a logdir (e.g. /path/to/data/dir/)")
 
 experiment = st.sidebar.selectbox("Select an experiment", get_experiment_folders(logdir))
 
 st.sidebar.subheader("Views")
-traces_view = st.sidebar.checkbox("Average", value=True)
-run_view = st.sidebar.checkbox("Run")
+view = st.sidebar.radio("Report data", ("average", "per run"))
 group_by = st.sidebar.radio("Group by", ("fluents", "objects"))
-
-st.sidebar.subheader("Plot Config")
-width = st.sidebar.slider("Width", min_value=5, max_value=30, value=10)
-height = st.sidebar.slider("Height", min_value=5, max_value=30, value=10)
 
 
 def main():
@@ -142,34 +147,47 @@ def main():
     traces_figs = plot_traces(dirpath)
 
     """
-    ## Rewards
+    ## Performance
     """
-    st.pyplot(traces_figs["rewards"])
-    st.pyplot(traces_figs["total_rewards"])
+    if st.checkbox("Total Rewards Per Run", value=True):
+        st.pyplot(traces_figs["total_rewards_per_run"])
 
-    if traces_view:
-        """
-        ## Traces
-        """
-        st.pyplot(traces_figs[group_by])
+    if st.checkbox("Histogram of Total Rewards"):
+        st.pyplot(traces_figs["total_reward_hist"])
 
-    if run_view:
-        if os.path.isdir(dirpath):
-            runs = []
-            for path in sorted(os.listdir(dirpath)):
-                fullpath = os.path.join(dirpath, path)
-                if os.path.isdir(fullpath) and path.startswith("run"):
-                    runs.append(path)
+    if st.checkbox("Rewards Per Run"):
+        st.pyplot(traces_figs["rewards_per_run"])
 
-            if runs:
-                """
-                ## Run
-                """
-                run = st.selectbox("Select a run to report", options=runs)
-                run_figs = plot_trace_run(dirpath, run)
+    """
+    ## Traces
+    """
+    if view == "average":
+        traces_figs = traces_figs[group_by]
 
+        variables = list(traces_figs.keys())
+        pvariables_selection = st.multiselect("Select variables to plot", variables, default=variables)
+
+        for pvariable, fig in traces_figs.items():
+            if pvariable in pvariables_selection:
+                st.pyplot(fig)
+    else:
+        runs = get_runs(dirpath)
+
+        if runs:
+            run = st.selectbox("Select a run to report", options=runs)
+            run_figs = plot_trace_run(dirpath, run)
+
+            if st.checkbox("Rewards"):
                 st.pyplot(run_figs["rewards"])
-                st.pyplot(run_figs[group_by])
+
+            run_trace_figs = run_figs[group_by]
+
+            variables = list(run_trace_figs.keys())
+            pvariables_selection = st.multiselect("Select variables to plot", variables, default=variables)
+
+            for pvariable, fig in run_trace_figs.items():
+                if pvariable in pvariables_selection:
+                    st.pyplot(fig)
 
 
 main()

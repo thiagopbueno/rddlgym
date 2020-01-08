@@ -16,7 +16,7 @@
 # pylint: disable=invalid-name,missing-docstring
 
 
-from collections import defaultdict
+from collections import defaultdict, OrderedDict
 import os
 
 import matplotlib.pyplot as plt
@@ -54,11 +54,13 @@ def _get_colors(df):
 
 
 def _plot_trace(df, variables, colors, group_by_fluent):
-    fig, axes = plt.subplots(
-        nrows=len(variables), ncols=1, sharex=True, constrained_layout=True
-    )
+
+    figs = OrderedDict()
 
     for i, (pvariable, fluent_vars) in enumerate(variables.items()):
+
+        fig, ax = plt.subplots(nrows=1, ncols=1, constrained_layout=True)
+        figs[pvariable] = fig
 
         for col in fluent_vars:
             values = df[col]
@@ -70,16 +72,16 @@ def _plot_trace(df, variables, colors, group_by_fluent):
 
             color = colors[col]
 
-            axes[i].plot(values, marker=".", label=label, color=color)
+            ax.plot(values, marker=".", label=label, color=color)
 
-        axes[i].set_title(pvariable, fontweight="bold")
-        axes[i].legend(loc="lower right", frameon=True)
-        axes[i].set_xticks(range(len(df)))
+        ax.set_title(pvariable, fontweight="bold")
+        ax.legend(loc="lower right", frameon=True)
+        ax.set_xticks(range(len(df)))
 
         if i == len(variables) - 1:
-            axes[i].set_xlabel("Timesteps")
+            ax.set_xlabel("Timesteps")
 
-    return fig
+    return figs
 
 
 def plot_trajectory(df):
@@ -96,11 +98,13 @@ def _plot_avg_traces(mean, std, variables, colors, group_by_fluent):
 
     lower, upper = mean - std, mean + std
 
-    fig, axes = plt.subplots(
-        nrows=len(variables), ncols=1, sharex=True, constrained_layout=True
-    )
+    figs = OrderedDict()
+
 
     for i, (pvariable, fluent_vars) in enumerate(variables.items()):
+
+        fig, ax = plt.subplots(nrows=1, ncols=1, constrained_layout=True)
+        figs[pvariable] = fig
 
         for col in fluent_vars:
 
@@ -111,8 +115,8 @@ def _plot_avg_traces(mean, std, variables, colors, group_by_fluent):
 
             color = colors[col]
 
-            axes[i].plot(mean[col], marker=".", label=label, color=color)
-            axes[i].fill_between(
+            ax.plot(mean[col], marker=".", label=label, color=color)
+            ax.fill_between(
                 mean.index,
                 lower[col],
                 upper[col],
@@ -121,14 +125,14 @@ def _plot_avg_traces(mean, std, variables, colors, group_by_fluent):
                 facecolor=color,
             )
 
-        axes[i].set_title(pvariable, fontweight="bold")
-        axes[i].legend(loc="lower right", frameon=True)
-        axes[i].set_xticks(range(len(mean)))
+        ax.set_title(pvariable, fontweight="bold")
+        ax.legend(loc="lower right", frameon=True)
+        ax.set_xticks(range(len(mean)))
 
         if i == len(variables) - 1:
-            axes[i].set_xlabel("Timesteps")
+            ax.set_xlabel("Timesteps")
 
-    return fig
+    return figs
 
 
 def plot_all_trajectories(dataframes):
@@ -140,7 +144,7 @@ def plot_all_trajectories(dataframes):
     colors = _get_colors(df)
     fluents, objects = _get_pvariables_dict(df)
 
-    fig_by_fluents = _plot_avg_traces(mean, std, fluents, colors, group_by_fluent=True)
-    fig_by_objects = _plot_avg_traces(mean, std, objects, colors, group_by_fluent=False)
+    figs_by_fluents = _plot_avg_traces(mean, std, fluents, colors, group_by_fluent=True)
+    figs_by_objects = _plot_avg_traces(mean, std, objects, colors, group_by_fluent=False)
 
-    return fig_by_fluents, fig_by_objects
+    return figs_by_fluents, figs_by_objects
