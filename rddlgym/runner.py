@@ -16,7 +16,7 @@
 # pylint: disable=missing-docstring
 
 
-from rddlgym.trajectory import Trajectory
+from rddlgym import Trajectory
 
 
 class Runner:
@@ -35,7 +35,8 @@ class Runner:
 
     def build(self):
         """Builds the runner's underlying components."""
-        self.planner.build()
+        if hasattr(self.planner, "build"):
+            self.planner.build()
 
     def run(self, mode=None):
         """Runs the planner-environment loop until termination.
@@ -70,8 +71,10 @@ class Runner:
 
     def close(self):
         """Closes the environment."""
+        if hasattr(self.planner, "close"):
+            self.planner.close()
+
         self.env.close()
-        self.planner.close()
 
     def __enter__(self):
         self.build()

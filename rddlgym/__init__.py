@@ -16,6 +16,7 @@
 # pylint: disable=missing-docstring
 
 
+from rddlgym.trajectory import Trajectory
 from rddlgym.runner import Runner
 from rddlgym.utils import make, load, Mode
 
@@ -23,3 +24,6 @@ RAW = Mode.RAW
 AST = Mode.AST
 SCG = Mode.SCG
 GYM = Mode.GYM
+
+
+__all__ = ["Trajectory", "Runner", "make", "load", "RAW", "AST", "SCG", "GYM"]

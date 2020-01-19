@@ -15,22 +15,20 @@
 # You should have received a copy of the GNU General Public License
 # along with rddlgym. If not, see <http://www.gnu.org/licenses/>.
 
+"""rddlgym script defines the CLI."""
+
 
 import os
 
 import click
-import matplotlib.pyplot as plt
 
 from rddlgym import Runner
 from rddlgym.utils import read_db, make, Mode
-from rddlgym.viz.plot_trajectory import plot_trajectory
-from rddlgym.viz.plot_rewards import plot_rewards
 
 
 @click.group()
 def cli():
     """rddlgym: A toolkit for working with RDDL domains in Python3."""
-    pass
 
 
 @cli.command()
@@ -80,29 +78,49 @@ def parse(rddl, verbose):
 @cli.command()
 @click.argument("rddl")
 @click.option(
+    "-e",
+    "--episodes",
+    type=int,
+    default=1,
+    help="Number of episodes to generate.",
+    show_default=True,
+)
+@click.option(
     "--logdir",
     type=click.Path(),
     default="/tmp/rddlgym/",
     help="Directory for saving trajectory data.",
     show_default=True,
 )
-def run(rddl, logdir):
+def run(**kwargs):
     """Run random policy in `rddl` domain/instance."""
-    env = make(rddl, mode=Mode.GYM)
-    filepath = os.path.join(logdir, "data.csv")
+    rddl = kwargs["rddl"]
+    episodes = kwargs["episodes"]
+    logdir = kwargs["logdir"]
 
-    def planner(state, timestep):
+    env = make(rddl, mode=Mode.GYM)
+
+    def random(state, timestep):
         # pylint: disable=unused-argument
         return env.action_space.sample()
 
     print(">> Running random policy ...")
+    print()
 
-    trajectory = Runner(env, planner).run()
-    trajectory.save(filepath)
+    with Runner(env, random) as runner:
 
-    print(f">> Results saved in {filepath}.")
-    print(">> To visualize trajectory data:")
-    print(f"rddlgym viz {rddl} {filepath}")
+        for i in range(episodes):
+            trajectory = runner.run()
+
+            filepath = os.path.join(logdir, f"episode-{i}.csv")
+            trajectory.save(filepath)
+
+            print(f">> Episode {i}:")
+            print(f"Total Reward = {trajectory.total_reward}")
+            print(f"Episode length = {len(trajectory)}")
+            print()
+
+    print(f">> Results saved in {logdir}.")
 
 
 if __name__ == "__main__":
