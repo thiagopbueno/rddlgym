@@ -13,15 +13,17 @@
 # You should have received a copy of the GNU General Public License
 # along with rddlgym. If not, see <http://www.gnu.org/licenses/>.
 
+# pylint: disable=missing-docstring
+
 
 import os
 import re
-from pprint import pprint
 import importlib.util
 
+from bokeh.colors import RGB
+from bokeh.models import FactorRange, Span
 from bokeh.plotting import figure
-from bokeh.models import FactorRange
-from bokeh.models import Span
+
 import numpy as np
 import pandas as pd
 import streamlit as st
@@ -68,7 +70,7 @@ def get_experiments(logdir, config_file):
 def get_csv_filenames(dirpath, trial):
     csv_files = []
 
-    experiment_path = os.path.join(logdir, dirpath, str(trial))
+    experiment_path = os.path.join(LOGDIR, dirpath, str(trial))
 
     for path in os.listdir(experiment_path):
         if not path.startswith("run"):
@@ -88,8 +90,8 @@ def get_reward_data(filepath):
 
 
 @st.cache
-def get_experiments_data(experiments):
-    data = {
+def get_total_rewards_data(experiments):
+    total_rewards_data = {
         "experiment_id": [],
         "dirpath": [],
         "trial": [],
@@ -99,72 +101,150 @@ def get_experiments_data(experiments):
     }
 
     for dirpath, trial, name in experiments:
+        experiment_id = os.path.join(dirpath, str(trial))
+
         csv_files = get_csv_filenames(dirpath, trial)
         dataframes = [get_reward_data(csv) for csv in csv_files]
+
         total_rewards = [df.sum() for df in dataframes]
+        total_rewards_data["experiment_id"].append(experiment_id)
+        total_rewards_data["dirpath"].append(dirpath)
+        total_rewards_data["trial"].append(trial)
+        total_rewards_data["name"].append(name)
+        total_rewards_data["mean"].append(np.mean(total_rewards))
+        total_rewards_data["std"].append(np.std(total_rewards))
 
-        data["experiment_id"].append(os.path.join(dirpath, str(trial)))
-        data["dirpath"].append(dirpath)
-        data["trial"].append(trial)
-        data["name"].append(name)
-        data["mean"].append(np.mean(total_rewards))
-        data["std"].append(np.std(total_rewards))
+    index = total_rewards_data["experiment_id"]
+    df_total_rewards = pd.DataFrame(total_rewards_data, index=index)
 
-    return pd.DataFrame(data, index=data["experiment_id"])
+    return df_total_rewards
 
 
-def plot_total_reward(data, filter=None, width=800, height=600):
-    if filter:
-        data = data[data["name"].str.contains(filter, regex=True)]
+def plot_total_reward(data, colors, filter_regex=None, width=800, height=600):
+    if filter_regex:
+        data = data[data["name"].str.contains(filter_regex, regex=True)]
 
     factors = [(dirpath, name) for dirpath, name in zip(data["dirpath"], data["name"])]
 
     p = figure(
         title="Total Rewards",
+        toolbar_location="above",
         y_range=FactorRange(*factors),
         plot_height=height,
         plot_width=width,
     )
 
-    p.title.text_font_size = "18pt"
-    p.yaxis.axis_label_text_font_size = "16pt"
-    p.yaxis.group_text_font_size = "12pt"
+    p.title.text_font_size = "12pt"
+    p.yaxis.group_text_font_size = "11pt"
     p.yaxis.major_label_text_font_size = "11pt"
 
     p.hbar(y=factors, right=data["mean"], height=0.6)
 
-    mean = data["mean"].mean()
-    vline = Span(location=mean, dimension="height", line_color="red", line_width=2)
-    p.renderers.append(vline)
+    mean_value = data["mean"].mean()
+    max_value = data["mean"].max()
+    vline1 = Span(
+        location=mean_value, dimension="height", line_color="red", line_width=2
+    )
+    vline2 = Span(
+        location=max_value, dimension="height", line_color="green", line_width=2
+    )
+    p.renderers.extend([vline1, vline2])
 
     return p
 
 
-"""
-# RDDL VisKit - Benchmark
-"""
+@st.cache
+def get_cumulative_rewards_data(experiments):
+    cumulative_rewards = {}
+
+    for dirpath, trial, name in experiments:
+        csv_files = get_csv_filenames(dirpath, trial)
+        dataframes = [get_reward_data(csv) for csv in csv_files]
+
+        s = pd.concat([df.cumsum() for df in dataframes])
+        s = s.groupby(s.index, sort=False)
+        mean = s.mean().rename("mean")
+        std = s.std().rename("std")
+
+        cumulative_rewards[(dirpath, trial, name)] = pd.concat([mean, std], axis=1)
+
+    return cumulative_rewards
+
+
+def plot_cumulative_reward(data, colors, filter_regex=None, width=800, height=600):
+    p = figure(
+        title="Cumulative Rewards",
+        x_axis_label="Timesteps",
+        toolbar_location="above",
+        plot_height=height,
+        plot_width=width,
+        background_fill_color="#fafafa",
+    )
+
+    p.title.text_font_size = "12pt"
+
+    for (dirpath, trial, name), df in data.items():
+        if filter is not None and not re.search(filter_regex, name):
+            continue
+
+        mean = df["mean"]
+        std = df["std"]
+        lower = mean - std
+        upper = mean + std
+
+        color = colors[(dirpath, trial, name)]
+
+        index = mean.index
+        label = f"{dirpath} - {name}"
+        p.line(x=index, y=mean, line_width=2, color=color, legend_label=label)
+        p.varea(x=index, y1=lower, y2=upper, color=color, alpha=0.2)
+
+    return p
+
+
+@st.cache
+def _get_colors(experiments):
+    n = len(experiments)
+
+    color_range_rgb = np.arange(1, 256)
+    red = np.random.choice(color_range_rgb, size=n, replace=False)
+    green = np.random.choice(color_range_rgb, size=n, replace=False)
+    blue = np.random.choice(color_range_rgb, size=n, replace=False)
+
+    colors = {}
+    for i, (r, g, b) in enumerate(zip(red, green, blue)):
+        colors[experiments[i]] = RGB(r, g, b)
+    return colors
+
 
 st.sidebar.subheader("Experiment Config")
-config_file = st.sidebar.text_input("Enter a config file (e.g., /path/to/config.py)")
+CONFIG_FILE = st.sidebar.text_input("Enter a file path (e.g., /path/to/config.py)")
 
 st.sidebar.subheader("Logging Directory")
-logdir = st.sidebar.text_input("Enter a logdir (e.g. /path/to/data/dir/)")
+LOGDIR = st.sidebar.text_input("Enter a log directory (e.g. /path/to/data/dir/)")
 
 st.sidebar.subheader("Filter")
-filter_regex = st.sidebar.text_input("Enter a regex expression:")
+FILTER_REGEX = st.sidebar.text_input("Enter a regex expression:")
 
 st.sidebar.subheader("Plotting Configuration")
-width = st.sidebar.slider("width", min_value=300, max_value=1200, value=700)
-height = st.sidebar.slider("height", min_value=300, max_value=1200, value=700)
+WIDTH = st.sidebar.slider("width", min_value=300, max_value=1200, value=700)
+HEIGHT = st.sidebar.slider("height", min_value=300, max_value=1200, value=700)
 
 
 def main():
-    if not os.path.isdir(logdir) or not os.path.isfile(config_file):
+    st.title("RDDL VisKit - Benchmark")
+
+    if not os.path.isdir(LOGDIR) or not os.path.isfile(CONFIG_FILE):
         return
 
-    experiments = get_experiments(logdir, config_file)
-    data = get_experiments_data(experiments)
-    st.bokeh_chart(plot_total_reward(data, filter_regex, width, height))
+    experiments = get_experiments(LOGDIR, CONFIG_FILE)
+    colors = _get_colors(experiments)
+
+    data = get_total_rewards_data(experiments)
+    st.bokeh_chart(plot_total_reward(data, colors, FILTER_REGEX, WIDTH, HEIGHT))
+
+    data = get_cumulative_rewards_data(experiments)
+    st.bokeh_chart(plot_cumulative_reward(data, colors, FILTER_REGEX, WIDTH, HEIGHT))
 
 
 main()
