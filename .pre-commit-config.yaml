@@ -1,3 +1,5 @@
+default_language_version:
+    python: python3.6
 repos:
     - repo: https://github.com/pre-commit/pre-commit-hooks
       rev: v1.3.0
@@ -47,7 +49,7 @@ repos:
       hooks:
       - id: black
         stages: [commit, push]
-        language_version: python3.7
+        language_version: python3.6
         args: [--check]
 
     - repo: https://github.com/alessandrojcm/commitlint-pre-commit-hook
@@ -62,7 +64,8 @@ repos:
       - id: pylint
         name: pylint
         entry: pylint
-        language: system
+        language: python
+        language_version: python3.6
         types: [python]
         stages: [commit, push]
         args: [-j 0]                    # Uses multiple processes to speed up pylint

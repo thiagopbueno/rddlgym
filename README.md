@@ -1,15 +1,19 @@
 # rddlgym [![Build Status](https://travis-ci.org/thiagopbueno/rddlgym.svg?branch=master)](https://travis-ci.org/thiagopbueno/rddlgym) [![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](https://github.com/thiagopbueno/rddlgym/blob/master/LICENSE)
 
 
-A toolkit for working with RDDL domains in Python3.
+A toolkit for working with RDDL domains in Python3. Its main purpose is to wrap a RDDL domain/instance planning problem as an OpenAI gym environment.
 
 # Quickstart
 
 ```text
-$ pip3 install rddlgym
+$ pip3 install -U rddlgym
 ```
 
 # Usage
+
+`rddlgym` can either be used as a standalone CLI app or it can be integrated with your code in order to implement customized agent-environment interaction loops.
+
+## CLI
 
 ```text
 $ rddlgym --help
@@ -26,6 +30,42 @@ Commands:
   parse  Check RDDL file parsing.
   run    Run random policy in `rddl` domain/instance.
   show   Print `rddl` file.
+```
+
+## API
+
+```python
+# create RDDLGYM environment
+rddl = "Navigation-v3" # see available RDDL with "$ rddlgym ls" command
+env = rddlgym.make(rddl, mode=rddlgym.GYM)
+
+# define random policy
+pi = lambda state, t: env.action_space.sample()
+
+# initialize environament
+state, t = env.reset()
+done = False
+
+# create a trajectory container
+trajectory = rddlgym.Trajectory(env)
+
+# sample an episode and store trajectory
+while not done:
+
+    action = pi(state, t)
+    next_state, reward, done, info = env.step(action)
+
+    trajectory.add_transition(t, state, action, reward, next_state, info, done)
+
+    state = next_state
+    t = env.timestep
+
+print(f"Total Reward = {trajectory.total_reward}")
+print(f"Episode length = {len(trajectory)}")
+
+filepath = f"/tmp/rddlgym/{rddl}/data.csv"
+df = trajectory.save(filepath) # dump episode data as csv file
+print(df) # display dataframe
 ```
 
 # License
