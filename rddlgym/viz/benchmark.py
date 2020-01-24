@@ -29,54 +29,47 @@ import pandas as pd
 import streamlit as st
 
 
-def get_tune_config(config_file):
-    spec = importlib.util.spec_from_file_location("module.name", config_file)
-    experiments = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(experiments)
-    return experiments.CONFIG_TEMPLATE
-
-
 @st.cache
-def get_experiments(logdir, config_file):
-    experiments = []
-
-    config = get_tune_config(config_file)
+def get_experiments(logdir):
+    experiments = set()
 
     for dirpath, dirnames, filenames in os.walk(logdir):
+
         if "config.json" not in filenames:
             continue
 
-        match = re.search(r"(\d+)$", dirpath)
-        if not match:
+        if not dirnames:
             continue
 
-        trial = int(match.group(1))
-        name = config[trial]["name"]
+        for dirname in dirnames:
 
-        dirpath = dirpath[: -len(match.group(1))]
-        dirpath = dirpath.replace(logdir, "")
-        if dirpath.startswith("/"):
-            dirpath = dirpath[1:]
+            match = re.search(r"(run\d+)$", dirname)
+            if not match:
+                continue
 
-        if dirpath.endswith("/"):
-            dirpath = dirpath[:-1]
+            experiment_id = dirpath.replace(logdir, "")
+            if experiment_id.startswith("/"):
+                experiment_id = experiment_id[1:]
 
-        experiments.append((dirpath, trial, name))
+            if experiment_id.endswith("/"):
+                experiment_id = experiment_id[:-1]
+
+            experiments.add(experiment_id)
 
     return sorted(experiments)
 
 
 @st.cache
-def get_csv_filenames(dirpath, trial):
+def get_csv_filenames(experiment_id):
     csv_files = []
 
-    experiment_path = os.path.join(LOGDIR, dirpath, str(trial))
+    dirpath = os.path.join(LOGDIR, experiment_id)
 
-    for path in os.listdir(experiment_path):
+    for path in os.listdir(dirpath):
         if not path.startswith("run"):
             continue
 
-        filepath = os.path.join(experiment_path, path, "data.csv")
+        filepath = os.path.join(dirpath, path, "data.csv")
         if os.path.isfile(filepath):
             csv_files.append(filepath)
 
@@ -93,24 +86,16 @@ def get_reward_data(filepath):
 def get_total_rewards_data(experiments):
     total_rewards_data = {
         "experiment_id": [],
-        "dirpath": [],
-        "trial": [],
-        "name": [],
         "mean": [],
         "std": [],
     }
 
-    for dirpath, trial, name in experiments:
-        experiment_id = os.path.join(dirpath, str(trial))
-
-        csv_files = get_csv_filenames(dirpath, trial)
+    for experiment_id in experiments:
+        csv_files = get_csv_filenames(experiment_id)
         dataframes = [get_reward_data(csv) for csv in csv_files]
 
         total_rewards = [df.sum() for df in dataframes]
         total_rewards_data["experiment_id"].append(experiment_id)
-        total_rewards_data["dirpath"].append(dirpath)
-        total_rewards_data["trial"].append(trial)
-        total_rewards_data["name"].append(name)
         total_rewards_data["mean"].append(np.mean(total_rewards))
         total_rewards_data["std"].append(np.std(total_rewards))
 
@@ -120,11 +105,38 @@ def get_total_rewards_data(experiments):
     return df_total_rewards
 
 
-def plot_total_reward(data, colors, filter_regex=None, width=800, height=600):
+def plot_total_reward(
+    data, colors, group_by=None, filter_regex=None, width=800, height=600
+):
     if filter_regex:
-        data = data[data["name"].str.contains(filter_regex, regex=True)]
+        data = data[data["experiment_id"].str.contains(filter_regex, regex=True)]
 
-    factors = [(dirpath, name) for dirpath, name in zip(data["dirpath"], data["name"])]
+    if data.empty:
+        return None
+
+    factors = []
+
+    for path in data["experiment_id"]:
+        folders = path.split("/")
+
+        category_idx, group_by_idx = None, None
+        for i, folder in enumerate(folders):
+            if category_idx is None and "=" in folder:
+                category_idx = i
+
+            if group_by and group_by_idx is None and re.search(f"{group_by}=", folder):
+                group_by_idx = i
+
+        category = "/".join(folders[:category_idx])
+
+        if group_by_idx is not None:
+            subcategory = folders[group_by_idx]
+            del folders[group_by_idx]
+            name = "/".join(folders[category_idx:])
+            factors.append((category, subcategory, name))
+        else:
+            name = "/".join(folders[category_idx:])
+            factors.append((category, name))
 
     p = figure(
         title="Total Rewards",
@@ -135,8 +147,8 @@ def plot_total_reward(data, colors, filter_regex=None, width=800, height=600):
     )
 
     p.title.text_font_size = "12pt"
-    p.yaxis.group_text_font_size = "11pt"
-    p.yaxis.major_label_text_font_size = "11pt"
+    p.yaxis.major_label_text_font_size = "9pt"
+    p.yaxis.group_text_font_size = "10pt"
 
     p.hbar(y=factors, right=data["mean"], height=0.6)
 
@@ -157,8 +169,8 @@ def plot_total_reward(data, colors, filter_regex=None, width=800, height=600):
 def get_cumulative_rewards_data(experiments):
     cumulative_rewards = {}
 
-    for dirpath, trial, name in experiments:
-        csv_files = get_csv_filenames(dirpath, trial)
+    for experiment_id in experiments:
+        csv_files = get_csv_filenames(experiment_id)
         dataframes = [get_reward_data(csv) for csv in csv_files]
 
         s = pd.concat([df.cumsum() for df in dataframes])
@@ -166,7 +178,7 @@ def get_cumulative_rewards_data(experiments):
         mean = s.mean().rename("mean")
         std = s.std().rename("std")
 
-        cumulative_rewards[(dirpath, trial, name)] = pd.concat([mean, std], axis=1)
+        cumulative_rewards[experiment_id] = pd.concat([mean, std], axis=1)
 
     return cumulative_rewards
 
@@ -183,8 +195,8 @@ def plot_cumulative_reward(data, colors, filter_regex=None, width=800, height=60
 
     p.title.text_font_size = "12pt"
 
-    for (dirpath, trial, name), df in data.items():
-        if filter is not None and not re.search(filter_regex, name):
+    for experiment_id, df in data.items():
+        if filter is not None and not re.search(filter_regex, experiment_id):
             continue
 
         mean = df["mean"]
@@ -192,10 +204,10 @@ def plot_cumulative_reward(data, colors, filter_regex=None, width=800, height=60
         lower = mean - std
         upper = mean + std
 
-        color = colors[(dirpath, trial, name)]
+        color = colors[experiment_id]
 
         index = mean.index
-        label = f"{dirpath} - {name}"
+        label = experiment_id
         p.line(x=index, y=mean, line_width=2, color=color, legend_label=label)
         p.varea(x=index, y1=lower, y2=upper, color=color, alpha=0.2)
 
@@ -217,34 +229,42 @@ def _get_colors(experiments):
     return colors
 
 
-st.sidebar.subheader("Experiment Config")
-CONFIG_FILE = st.sidebar.text_input("Enter a file path (e.g., /path/to/config.py)")
-
 st.sidebar.subheader("Logging Directory")
 LOGDIR = st.sidebar.text_input("Enter a log directory (e.g. /path/to/data/dir/)")
+
+st.sidebar.subheader("Views")
+VIEW = st.sidebar.radio("Report data by", ("Total Rewards", "Cumulative Rewards"))
+
+st.sidebar.subheader("Group By")
+GROUP_BY = st.sidebar.text_input("Enter a valid hyperparameter:")
 
 st.sidebar.subheader("Filter")
 FILTER_REGEX = st.sidebar.text_input("Enter a regex expression:")
 
-st.sidebar.subheader("Plotting Configuration")
-WIDTH = st.sidebar.slider("width", min_value=300, max_value=1200, value=700)
-HEIGHT = st.sidebar.slider("height", min_value=300, max_value=1200, value=700)
+
+# st.sidebar.subheader("Plotting Configuration")
+# WIDTH = st.sidebar.slider("width", min_value=300, max_value=1200, value=700)
+# HEIGHT = st.sidebar.slider("height", min_value=300, max_value=1200, value=700)
 
 
 def main():
     st.title("RDDL VisKit - Benchmark")
 
-    if not os.path.isdir(LOGDIR) or not os.path.isfile(CONFIG_FILE):
+    if not os.path.isdir(LOGDIR):
         return
 
-    experiments = get_experiments(LOGDIR, CONFIG_FILE)
+    experiments = get_experiments(LOGDIR)
     colors = _get_colors(experiments)
 
-    data = get_total_rewards_data(experiments)
-    st.bokeh_chart(plot_total_reward(data, colors, FILTER_REGEX, WIDTH, HEIGHT))
-
-    data = get_cumulative_rewards_data(experiments)
-    st.bokeh_chart(plot_cumulative_reward(data, colors, FILTER_REGEX, WIDTH, HEIGHT))
+    if VIEW == "Total Rewards":
+        data = get_total_rewards_data(experiments)
+        p = plot_total_reward(data, colors, GROUP_BY, FILTER_REGEX)
+        if p is not None:
+            st.bokeh_chart(p)
+    else:
+        data = get_cumulative_rewards_data(experiments)
+        p = plot_cumulative_reward(data, colors, FILTER_REGEX)
+        st.bokeh_chart(p)
 
 
 main()
