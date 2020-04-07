@@ -53,8 +53,8 @@ Commands:
 
 ```python
 # create RDDLGYM environment
-rddl_id = "Navigation-v3" # see available RDDL with "$ rddlgym ls" command
-env = rddlgym.make(rddl_id, mode=rddlgym.GYM) # See all RDDL problems available via `rddlgym ls`
+rddl_id = "Navigation-v3" # see available RDDL domains/instances with `rddlgym ls` command
+env = rddlgym.make(rddl_id, mode=rddlgym.GYM)
 
 # you can also wrap your own RDDL files (domain + instance)
 # env = rddlgym.make("/path/to/your/domain_instance.rddl", mode=rddlgym.GYM)
