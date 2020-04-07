@@ -23,6 +23,7 @@ For further details, please refer to the documentation of the following packages
 Please note that `rddl2tf` (and consequently `rddlgym`) has been mainly developed to support continuous state-action domains. It may not currently work for discrete MDPs.
 
 If you tried to use `rddlgym` with your own RDDL files and encounter errors due (probably) to the RDDL-to-TensorFlow compilation, please do not hesitate to open an issue or contact me.
+
 ---
 
 # Usage
