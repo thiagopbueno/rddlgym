@@ -52,6 +52,8 @@ Commands:
 ## API
 
 ```python
+import rddlgym
+
 # create RDDLGYM environment
 rddl_id = "Navigation-v3" # see available RDDL domains/instances with `rddlgym ls` command
 env = rddlgym.make(rddl_id, mode=rddlgym.GYM)
