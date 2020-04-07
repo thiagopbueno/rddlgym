@@ -1,5 +1,4 @@
-# rddlgym [![Build Status](https://travis-ci.org/thiagopbueno/rddlgym.svg?branch=master)](https://travis-ci.org/thiagopbueno/rddlgym) [![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](https://github.com/thiagopbueno/rddlgym/blob/master/LICENSE)
-
+# rddlgym [![Py Versions][py-versions.svg]][pypi-project] [![PyPI version][pypi-version.svg]][pypi-version] [![Build Status][travis.svg]][travis-project] [![Documentation Status][rtd-badge.svg]][rtd-badge] [![License: GPL v3][license.svg]][license]
 
 A toolkit for working with RDDL domains in Python3. Its main purpose is to wrap a RDDL domain/instance planning problem as an OpenAI gym environment.
 
@@ -84,3 +83,18 @@ General Public License for more details.
 
 You should have received a copy of the GNU Lesser General Public License
 along with rddlgym. If not, see http://www.gnu.org/licenses/.
+
+[py-versions.svg]: https://img.shields.io/pypi/pyversions/rddlgym.svg?logo=python&logoColor=white
+[pypi-project]: https://pypi.org/project/rddlgym
+
+[pypi-version.svg]: https://badge.fury.io/py/rddlgym.svg
+[pypi-version]: https://badge.fury.io/py/rddlgym
+
+[travis.svg]: https://img.shields.io/travis/thiagopbueno/rddlgym/master.svg?logo=travis
+[travis-project]: https://travis-ci.org/thiagopbueno/rddlgym
+
+[rtd-badge.svg]: https://readthedocs.org/projects/rddlgym/badge/?version=latest
+[rtd-badge]: https://rddlgym.readthedocs.io/en/latest/?badge=latest
+
+[license.svg]: https://img.shields.io/badge/License-GPL%20v3-blue.svg
+[license]: https://github.com/thiagopbueno/rddlgym/blob/master/LICENSE

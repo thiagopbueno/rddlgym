@@ -1,7 +1,7 @@
 language: python
 python:
-  - "3.7"
+  - "3.6"
 install:
-  - pip install -r requirements.txt
+  - pip install -U -r requirements.txt
 script:
-  - pytest -sv --disable-warnings 2>/dev/null
+  - pytest tests/*.py -sv --disable-warnings 2>/dev/null
