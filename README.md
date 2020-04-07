@@ -1,12 +1,30 @@
 # rddlgym [![Py Versions][py-versions.svg]][pypi-project] [![PyPI version][pypi-version.svg]][pypi-version] [![Build Status][travis.svg]][travis-project] [![Documentation Status][rtd-badge.svg]][rtd-badge] [![License: GPL v3][license.svg]][license]
 
-A toolkit for working with RDDL domains in Python3. Its main purpose is to wrap a RDDL domain/instance planning problem as an OpenAI gym environment.
+A toolkit for working with RDDL domains in Python3. Its main purpose is to wrap a RDDL domain/instance planning problem as an OpenAI Gym environment.
 
 # Quickstart
 
 ```text
 $ pip3 install -U rddlgym
 ```
+
+# Features
+
+`rddlgym` implements the OpenAI Gym API for RDDL problems. It uses `pyrddl` to parse RDDL files. Additionally, in order to simulate RDDL domains, it uses `rddl2tf` to compile RDDL operations and expressions to *TensorFlow 1.X* ops.
+
+For further details, please refer to the documentation of the following packages:
+
+- [pyrddl](https://github.com/thiagopbueno/pyrddl): RDDL lexer/parser in Python3.
+- [rddl2tf](https://github.com/thiagopbueno/rddl2tf): RDDL2TensorFlow compiler.
+
+---
+**NOTE**
+
+Please note that `rddl2tf` (and consequently `rddlgym`) has been mainly developed to support continuous state-action domains. It may not currently work for discrete MDPs.
+
+If you tried to use `rddlgym` with your own RDDL files and encounter errors due (probably) to the RDDL-to-TensorFlow compilation, please do not hesitate to open an issue or contact me.
+
+---
 
 # Usage
 
@@ -35,11 +53,14 @@ Commands:
 
 ```python
 # create RDDLGYM environment
-rddl = "Navigation-v3" # see available RDDL with "$ rddlgym ls" command
-env = rddlgym.make(rddl, mode=rddlgym.GYM)
+rddl_id = "Navigation-v3" # see available RDDL with "$ rddlgym ls" command
+env = rddlgym.make(rddl_id, mode=rddlgym.GYM) # See all RDDL problems available via `rddlgym ls`
+
+# you can also wrap your own RDDL files (domain + instance)
+# env = rddlgym.make("/path/to/your/domain_instance.rddl", mode=rddlgym.GYM)
 
 # define random policy
-pi = lambda state, t: env.action_space.sample()
+policy = lambda state, t: env.action_space.sample()
 
 # initialize environament
 state, t = env.reset()
@@ -51,7 +72,7 @@ trajectory = rddlgym.Trajectory(env)
 # sample an episode and store trajectory
 while not done:
 
-    action = pi(state, t)
+    action = policy(state, t)
     next_state, reward, done, info = env.step(action)
 
     trajectory.add_transition(t, state, action, reward, next_state, info, done)
