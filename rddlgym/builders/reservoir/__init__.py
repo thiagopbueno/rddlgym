@@ -1,3 +1,5 @@
+import numpy as np
+
 from rddlgym.builders import *
 
 
@@ -81,6 +83,9 @@ class ReservoirBuilder(RDDLBuilder):
                  init_relative_level=-0.45,
                  horizon=40,
                  discount=1.0):
+
+        super().__init__()
+
         self.domain_id = domain_id
         self.non_fluents_id = non_fluents_id
         self.instance_id = instance_id
@@ -104,17 +109,12 @@ class ReservoirBuilder(RDDLBuilder):
 
     @property
     def _non_fluents(self):
-        shape = (self.rain_mean ** 2) / self.rain_variance
-        scale = self.rain_variance / self.rain_mean
-        RAIN_SHAPE = generate_predicate_list("RAIN_SHAPE", "t", [shape] * self.n_reservoirs)
-        RAIN_SCALE = generate_predicate_list("RAIN_SCALE", "t", [scale] * self.n_reservoirs)
+        RAIN_SHAPE = generate_predicate_list("RAIN_SHAPE", "t", self.rain_shape)
+        RAIN_SCALE = generate_predicate_list("RAIN_SCALE", "t", self.rain_scale)
 
-        DOWNSTREAM = generate_linear_topology("DOWNSTREAM", "t", self.n_reservoirs)
-        lower_bounds = [self.MAX_RES_CAP * max(0.0, self.level_set_point - self.level_nominal_range / 2)] * self.n_reservoirs
-        LOWER_BOUND = generate_predicate_list("LOWER_BOUND", "t", lower_bounds)
-
-        upper_bounds = [self.MAX_RES_CAP * min(1.0, self.level_set_point + self.level_nominal_range / 2)] * self.n_reservoirs
-        UPPER_BOUND = generate_predicate_list("UPPER_BOUND", "t", upper_bounds)
+        DOWNSTREAM = generate_topology("DOWNSTREAM", "t", self.downstream)
+        LOWER_BOUND = generate_predicate_list("LOWER_BOUND", "t", self.lower_bound)
+        UPPER_BOUND = generate_predicate_list("UPPER_BOUND", "t", self.upper_bound)
 
         return f"""{DOWNSTREAM}
 
@@ -127,10 +127,40 @@ class ReservoirBuilder(RDDLBuilder):
         {RAIN_SCALE}"""
 
     @property
+    def initial_state(self):
+        return [self.MAX_RES_CAP * (self.level_set_point + self.init_relative_level)] * self.n_reservoirs
+
+    @property
     def _init_state(self):
-        rlevels = [self.MAX_RES_CAP * (self.level_set_point + self.init_relative_level)] * self.n_reservoirs
-        rlevels = generate_predicate_list("rlevel", "t", rlevels)
-        return rlevels
+        return generate_predicate_list("rlevel", "t", self.initial_state)
+
+    @property
+    @config
+    def downstream(self):
+        downstream = np.zeros([self.n_reservoirs] * 2, dtype=np.int32)
+        for i in range(self.n_reservoirs - 1):
+            downstream[i, i + 1] = 1
+        return downstream.tolist()
+
+    @property
+    @config
+    def lower_bound(self):
+        return [self.MAX_RES_CAP * max(0.0, self.level_set_point - self.level_nominal_range / 2)] * self.n_reservoirs
+
+    @property
+    @config
+    def upper_bound(self):
+        return [self.MAX_RES_CAP * min(1.0, self.level_set_point + self.level_nominal_range / 2)] * self.n_reservoirs
+
+    @property
+    @config
+    def rain_shape(self):
+        return [(self.rain_mean ** 2) / self.rain_variance] * self.n_reservoirs
+
+    @property
+    @config
+    def rain_scale(self):
+        return [self.rain_variance / self.rain_mean] * self.n_reservoirs
 
 
 if __name__ == "__main__":
@@ -150,4 +180,5 @@ if __name__ == "__main__":
     print(rddl)
 
     builder.save("res10.rddl")
+    builder.dump_config("res10.config.json")
 

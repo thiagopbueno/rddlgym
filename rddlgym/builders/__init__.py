@@ -7,6 +7,15 @@ def generate_objs_list(prefix, n):
     return ", ".join(f"{prefix}{i+1}" for i in range(n))
 
 
+def generate_topology(predicate, obj_prefix, matrix):
+    return "\n\t".join(
+        f"{predicate}({obj_prefix}{i+1},{obj_prefix}{j+1});"
+        for i in range(len(matrix))
+        for j in range(len(matrix[0]))
+        if matrix[i][j] == 1
+    )
+
+
 def generate_linear_topology(predicate, obj_prefix, n):
     return "\n\t".join(
         f"{predicate}({obj_prefix}{i},{obj_prefix}{i+1});"
