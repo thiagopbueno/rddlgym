@@ -1,3 +1,5 @@
+import functools
+import json
 import os
 
 
@@ -17,7 +19,21 @@ def generate_predicate_list(predicate, obj_prefix, values):
         for i, value in enumerate(values))
 
 
+def config(f):
+    @functools.wraps(f)
+    def wrapper(*args, **kwargs):
+        self_ = args[0]
+        values = f(*args, **kwargs)
+        self_._config[f.__name__] = values
+        return values
+
+    return wrapper
+
+
 class RDDLBuilder:
+
+    def __init__(self):
+        self._config = {}
 
     def build(self):
         rddl = f"""{self._domain_section}
@@ -32,6 +48,17 @@ class RDDLBuilder:
 
         with open(filepath, "w") as file:
             file.write(self.build())
+
+    def dump_config(self, filepath):
+        config = {
+            "module": "reservoir",
+            "cls_name": "Reservoir",
+            "config": self._config,
+            "initial_state": self.initial_state
+        }
+
+        with open(filepath, "w") as file:
+            file.write(json.dumps(config, indent=4))
 
     @property
     def _domain_section(self):
