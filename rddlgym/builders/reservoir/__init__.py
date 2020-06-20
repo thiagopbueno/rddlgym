@@ -21,16 +21,18 @@ class ReservoirBuilder(RDDLBuilder):
     };"""
 
     NONFLUENTS = """MAX_RES_CAP(res): { non-fluent, real, default = 100.0 }; // Beyond this amount, water spills over
+
         UPPER_BOUND(res): { non-fluent, real, default = 80.0 };  // The upper bound for a safe reservoir level
         LOWER_BOUND(res): { non-fluent, real, default = 20.0 };  // The lower bound for a safe reservoir level
+
         RAIN_SHAPE(res):  { non-fluent, real, default = 25.0 };  // Gamma shape parameter for rainfall
         RAIN_SCALE(res):  { non-fluent, real, default = 25.0 };  // Gamma scale paramater for rainfall
-        DOWNSTREAM(res,res): { non-fluent, bool, default = false }; // Indicates 2nd res is downstream of 1st res
-        SINK_RES(res):    { non-fluent, bool, default = false }; // This is a "sink" water source (sea, ocean)
-        MAX_WATER_EVAP_FRAC_PER_TIME_UNIT: { non-fluent, real, default = 0.05 }; // Maximum fraction of evaporation
 
-        LOW_PENALTY(res) : { non-fluent, real, default =  -5.0 }; // Penalty per unit of level < LOWER_BOUND
-        HIGH_PENALTY(res): { non-fluent, real, default = -10.0 }; // Penalty per unit of level > UPPER_BOUND"""
+        DOWNSTREAM(res,res): { non-fluent, bool, default = false }; // Indicates 2nd res is downstream of 1st res
+
+        LOW_PENALTY(res) : { non-fluent, real, default =  -5.0 };     // Penalty per unit of level < LOWER_BOUND
+        HIGH_PENALTY(res): { non-fluent, real, default = -100.0 };    // Penalty per unit of level > UPPER_BOUND
+        SET_POINT_PENALTY(res): { non-fluent, real, default = -0.1 }; // Penalty per unit of level far from (LOWER_BOUND + UPPER_BOUND) / 2"""
 
     STATEFLUENTS = """
         rlevel(res): { state-fluent, real, default = 50.0 }; // Reservoir level for res"""
