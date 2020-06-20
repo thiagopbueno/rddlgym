@@ -51,9 +51,11 @@ class ReservoirBuilder(RDDLBuilder):
 
     STATECPFS = """rlevel'(?r) = max[0.0, rlevel(?r) + rainfall(?r) - vaporated(?r) - (outflow(?r) * rlevel(?r)) + inflow(?r)];"""
 
-        // Consider MAX_RES_CAP=90, rlevel=100, outflow=4, then the excess overflow is 6 units
-        // Consider MAX_RES_CAP=100, rlevel=90, outflow=4, then the excess overflow is 0 units
-        overflow(?r) = max[0, rlevel(?r) - outflow(?r) - MAX_RES_CAP(?r)];
+    REWARD = """sum_{?r: res} [
+        LOW_PENALTY * max[0.0, LOWER_BOUND(?r) - rlevel(?r)]
+        + HIGH_PENALTY * max[0.0, rlevel(?r) - UPPER_BOUND(?r)]
+        + SET_POINT_PENALTY * abs[(LOWER_BOUND(?r) + UPPER_BOUND(?r)) / 2 - rlevel(?r)]
+    ];"""
 
         inflow(?r) = sum_{?up : res} [DOWNSTREAM(?up,?r)*(outflow(?up) + overflow(?up))];"""
 
