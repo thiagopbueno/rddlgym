@@ -45,12 +45,11 @@ class ReservoirBuilder(RDDLBuilder):
     ACTIONFLUENTS = """
         outflow(res): { action-fluent, real, default = 0.0 }; // Action to set outflow of res"""
 
-    INTERMCPFS = """// Gamma is non-negative, Gamma expected value is SHAPE*SCALE, variance is SHAPE*SCALE^2
+    INTERMCPFS = """vaporated(?r) = 1 / 2 * sin[rlevel(?r) / MAX_RES_CAP(?r)] * rlevel(?r);
         rainfall(?r) = Gamma(RAIN_SHAPE(?r), RAIN_SCALE(?r));
+        inflow(?r) = sum_{?up : res} [DOWNSTREAM(?up,?r) * outflow(?up)];"""
 
-        evaporated(?r) = MAX_WATER_EVAP_FRAC_PER_TIME_UNIT
-                         *[(rlevel(?r)*rlevel(?r))/(MAX_RES_CAP(?r)*MAX_RES_CAP(?r))]
-                         *rlevel(?r);
+    STATECPFS = """rlevel'(?r) = max[0.0, rlevel(?r) + rainfall(?r) - vaporated(?r) - (outflow(?r) * rlevel(?r)) + inflow(?r)];"""
 
         // Consider MAX_RES_CAP=90, rlevel=100, outflow=4, then the excess overflow is 6 units
         // Consider MAX_RES_CAP=100, rlevel=90, outflow=4, then the excess overflow is 0 units
