@@ -67,11 +67,13 @@ class RDDLBuilder:
                 value = value[:, np.newaxis]
             self._config[key] = value.tolist()
 
+        initial_state = np.array(self.initial_state)[:, np.newaxis].tolist()
+
         config = {
             "module": "reservoir",
             "cls_name": "Reservoir",
             "config": self._config,
-            "initial_state": self.initial_state
+            "initial_state": initial_state
         }
 
         with open(filepath, "w") as file:
