@@ -113,7 +113,7 @@ class RDDLBuilder:
     }};
     max-nondef-actions = pos-inf;
     horizon = {self.horizon};
-    discount = {self.discount}
+    discount = {self.discount};
 }}
 """
 
