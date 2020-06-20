@@ -7,6 +7,10 @@ class ReservoirBuilder(RDDLBuilder):
 
     MAX_RES_CAP = 100.0
 
+    LOW_PENALTY = -5.0
+    HIGH_PENALTY = -100.0
+    SET_POINT_PENALTY = -0.1
+
     REQUIREMENTS = """
     requirements = {
         concurrent,
@@ -101,6 +105,8 @@ class ReservoirBuilder(RDDLBuilder):
 
     @property
     def _non_fluents(self):
+        [self.max_res_cap, self.low_penalty, self.high_penalty, self.set_point_penalty]
+
         RAIN_SHAPE = generate_predicate_list("RAIN_SHAPE", "t", self.rain_shape)
         RAIN_SCALE = generate_predicate_list("RAIN_SCALE", "t", self.rain_scale)
 
@@ -133,6 +139,26 @@ class ReservoirBuilder(RDDLBuilder):
         for i in range(self.n_reservoirs - 1):
             downstream[i, i + 1] = 1
         return downstream.tolist()
+
+    @property
+    @config
+    def max_res_cap(self):
+        return [self.MAX_RES_CAP] * self.n_reservoirs
+
+    @property
+    @config
+    def low_penalty(self):
+        return [self.LOW_PENALTY] * self.n_reservoirs
+
+    @property
+    @config
+    def high_penalty(self):
+        return [self.HIGH_PENALTY] * self.n_reservoirs
+
+    @property
+    @config
+    def set_point_penalty(self):
+        return [self.SET_POINT_PENALTY] * self.n_reservoirs
 
     @property
     @config
