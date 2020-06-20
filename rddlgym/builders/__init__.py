@@ -2,6 +2,8 @@ import functools
 import json
 import os
 
+import numpy as np
+
 
 def generate_objs_list(prefix, n):
     return ", ".join(f"{prefix}{i+1}" for i in range(n))
@@ -59,6 +61,12 @@ class RDDLBuilder:
             file.write(self.build())
 
     def dump_config(self, filepath):
+        for key, value in self._config.items():
+            value = np.array(value)
+            if len(value.shape) == 1:
+                value = value[:, np.newaxis]
+            self._config[key] = value.tolist()
+
         config = {
             "module": "reservoir",
             "cls_name": "Reservoir",
@@ -67,7 +75,7 @@ class RDDLBuilder:
         }
 
         with open(filepath, "w") as file:
-            file.write(json.dumps(config, indent=4))
+            file.write(json.dumps(config, indent=None))
 
     @property
     def _domain_section(self):
