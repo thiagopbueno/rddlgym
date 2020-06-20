@@ -119,12 +119,12 @@ class ReservoirBuilder(RDDLBuilder):
         {RAIN_SCALE}"""
 
     @property
-    def initial_state(self):
-        return [self.MAX_RES_CAP * (self.level_set_point + self.init_relative_level)] * self.n_reservoirs
-
-    @property
     def _init_state(self):
         return generate_predicate_list("rlevel", "t", self.initial_state)
+
+    @property
+    def initial_state(self):
+        return [self.MAX_RES_CAP * (self.level_set_point + self.init_relative_level)] * self.n_reservoirs
 
     @property
     @config
@@ -157,7 +157,7 @@ class ReservoirBuilder(RDDLBuilder):
 
 if __name__ == "__main__":
     builder = ReservoirBuilder(
-        "reservoir",
+        domain_id="reservoir",
         non_fluents_id="res10",
         instance_id="inst_reservoir_res10",
         n_reservoirs=10,
