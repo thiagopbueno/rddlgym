@@ -91,7 +91,7 @@ class ReservoirBuilder(RDDLBuilder):
         self.level_nominal_range = level_nominal_range
 
         self.rain_mean = rain_mean * self.MAX_RES_CAP
-        self.rain_variance = rain_variance * self.MAX_RES_CAP
+        self.rain_variance = rain_variance * (self.MAX_RES_CAP ** 2)
 
         self.init_relative_level = init_relative_level
 
