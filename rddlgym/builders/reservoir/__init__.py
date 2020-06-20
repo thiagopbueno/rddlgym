@@ -38,10 +38,9 @@ class ReservoirBuilder(RDDLBuilder):
         rlevel(res): { state-fluent, real, default = 50.0 }; // Reservoir level for res"""
 
     INTERMFLUENTS = """
-        evaporated(res): {interm-fluent, real, level=1}; // How much evaporates from res in this time step?
-        rainfall(res):   {interm-fluent, real, level=1}; // How much rainfall is there in this time step?
-        overflow(res):   {interm-fluent, real, level=1}; // Is there any excess overflow (over the rim)?
-        inflow(res):     {interm-fluent, real, level=2}; // How much res receives from upstream reservoirs?"""
+        vaporated(res): {interm-fluent, real, level=1}; // How much evaporates from res in this time step?
+        rainfall(res):  {interm-fluent, real, level=1}; // How much rainfall is there in this time step?
+        inflow(res):    {interm-fluent, real, level=1}; // How much res receives from upstream reservoirs?"""
 
     ACTIONFLUENTS = """
         outflow(res): { action-fluent, real, default = 0.0 }; // Action to set outflow of res"""
