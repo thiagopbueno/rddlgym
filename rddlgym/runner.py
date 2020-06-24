@@ -15,6 +15,8 @@
 
 # pylint: disable=missing-docstring
 
+import time
+
 
 from rddlgym import Trajectory
 
@@ -28,15 +30,33 @@ class Runner:
         debug (bool): The debug flag.
     """
 
-    def __init__(self, env, planner, debug=False):
+    def __init__(self, env, planner, **kwargs):
         self.env = env
         self.planner = planner
-        self.debug = debug
+
+        self.debug = kwargs.get("debug", False)
+
+        self._on_episode_start_hook = kwargs.get("on_episode_start")
+        self._on_episode_end_hook = kwargs.get("on_episode_end")
+        self._on_step_hook = kwargs.get("on_step")
 
     def build(self):
         """Builds the runner's underlying components."""
         if hasattr(self.planner, "build"):
             self.planner.build()
+
+    def _on_episode_start(self):
+        if self._on_episode_start_hook:
+            self._on_episode_start_hook()
+
+    def _on_episode_end(self, trajectory, uptime):
+        if self._on_episode_end_hook:
+            self._on_episode_end_hook(trajectory, uptime)
+
+    def _on_step(self, timestep, state, action, reward, next_state, done, info):
+        # pylint: disable=too-many-arguments
+        if self._on_step_hook:
+            self._on_step_hook(timestep, state, action, reward, next_state, done, info)
 
     def run(self, mode=None):
         """Runs the planner-environment loop until termination.
@@ -53,9 +73,19 @@ class Runner:
 
         trajectory = Trajectory(self.env)
 
+        start_time = time.perf_counter()
+        self._on_episode_start()
+
+        total_reward = 0.0
+
         while not done:
             action = self.planner(state, timestep)
             next_state, reward, done, info = self.env.step(action)
+            total_reward += reward
+
+            info["total_reward"] = total_reward
+
+            self._on_step(timestep, state, action, reward, next_state, done, info)
 
             trajectory.add_transition(
                 timestep, state, action, reward, next_state, info, done
@@ -67,7 +97,10 @@ class Runner:
             state = next_state
             timestep = self.env.timestep
 
-        return trajectory
+        uptime = time.perf_counter() - start_time
+        self._on_episode_end(trajectory, uptime)
+
+        return trajectory, uptime
 
     def close(self):
         """Closes the environment."""
