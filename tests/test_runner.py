@@ -40,7 +40,7 @@ def runner(request):
 
 
 def test_run(runner):
-    trajectory = runner.run()
+    trajectory, _ = runner.run()
     assert len(trajectory) == runner.env.horizon
 
     for idx, transition in enumerate(trajectory):

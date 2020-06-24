@@ -34,7 +34,7 @@ def trajectory(request):
         # pylint: disable=unused-argument
         return env.action_space.sample()
 
-    trajectory = Runner(env, planner).run()
+    trajectory, _ = Runner(env, planner).run()
     return trajectory
 
 
